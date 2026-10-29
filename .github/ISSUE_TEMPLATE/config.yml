@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security issue
+    url: https://github.com/idevtim/sift/blob/main/SECURITY.md
+    about: Please report vulnerabilities privately by email, not as a public issue
+  - name: Privacy
+    url: https://github.com/idevtim/sift/blob/main/PRIVACY.md
+    about: What Sift reads on your computer, and what (nothing) it sends anywhere
