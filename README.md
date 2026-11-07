@@ -23,7 +23,7 @@ Nothing is deleted on the spot. Whatever Sift removes waits in **Restore** for 3
 
 <p align="center">
   <img src="assets/screenshots/restore.png" alt="Restore: removed items kept for 30 days with Restore and Clear now buttons, and a Cleared for good section" width="420">
-  <img src="assets/screenshots/duplicates.png" alt="Duplicates: exact copies grouped together, keeping the oldest by default" width="420">
+  <img src="assets/screenshots/duplicates.png" alt="Duplicates: sets of identical files listed by how much they free, with the selected set's copies side by side, a Keep or Remove label on each, and a choice of keeping the oldest, best-placed or newest copy" width="420">
 </p>
 
 <details>
