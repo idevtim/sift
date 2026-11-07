@@ -1,0 +1,41 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+*.tsbuildinfo
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.sw?
+
+# Tauri
+src-tauri/target
+src-tauri/gen
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Claude Code — personal overrides
+CLAUDE.local.md
+.remember/
+
+# Tauri updater signing keys — never commit.
+*.key
+*.key.pub
+.tauri/
+
+# Playwright
+.playwright-mcp/
+
+# Claude Code shared settings stay; personal ones don't
+.claude/settings.local.json

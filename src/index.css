@@ -1,0 +1,155 @@
+@import "tailwindcss";
+@import "@fontsource/figtree/400.css";
+@import "@fontsource/figtree/500.css";
+@import "@fontsource/figtree/600.css";
+@import "@fontsource/figtree/700.css";
+@import "@fontsource/figtree/800.css";
+
+/* Tailwind v4: route the `dark:` variant through our [data-theme] attribute.
+   useTheme resolves "system" to light/dark and writes it on <html>. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* Design tokens (handoff README → Design Tokens). Theme-dependent values are
+   CSS variables so the 0.4s theme transition can animate backgrounds. */
+:root {
+  --surface: #fbfaf7;
+  --panel: #f4f2ee;
+  --ink: #22262b;
+  --mut: #6a6f76;
+  --mut2: #4a4f56;
+  --mut3: #8a8f96;
+  --line: #ece9e3;
+  --line2: #dcd8d0;
+  --line3: #e2ded6;
+  --mint: #ddf1eb;
+  --tealtx: #17705f;
+  --sand: #f6e7cf;
+  --sandtx: #7a5620;
+  --hover: #f1eee8;
+  --stone: #d3cec5;
+  --stone2: #bdb8af;
+  --track: #e6e2da;
+  --donetx: #3e5650;
+  --disabled: #b9c9c4;
+}
+
+[data-theme="dark"] {
+  --surface: #17191c;
+  --panel: #1f2226;
+  --ink: #eceae4;
+  --mut: #9ba0a6;
+  --mut2: #bfc3c8;
+  --mut3: #7d828a;
+  --line: #2a2e33;
+  --line2: #3a3f45;
+  --line3: #33373c;
+  --mint: #173a33;
+  --tealtx: #7fcdbb;
+  --sand: #3a2f1e;
+  --sandtx: #e8c27a;
+  --hover: #262a2f;
+  --stone: #4a4f56;
+  --stone2: #5a5f66;
+  --track: #2e3237;
+  --donetx: #a9cfc5;
+  --disabled: #2f4a44;
+}
+
+@theme {
+  --color-surface: var(--surface);
+  --color-panel: var(--panel);
+  --color-ink: var(--ink);
+  --color-mut: var(--mut);
+  --color-mut2: var(--mut2);
+  --color-mut3: var(--mut3);
+  --color-line: var(--line);
+  --color-line2: var(--line2);
+  --color-line3: var(--line3);
+  --color-mint: var(--mint);
+  --color-tealtx: var(--tealtx);
+  --color-sand: var(--sand);
+  --color-sandtx: var(--sandtx);
+  --color-hover: var(--hover);
+  --color-stone: var(--stone);
+  --color-stone2: var(--stone2);
+  --color-track: var(--track);
+  --color-donetx: var(--donetx);
+  --color-disabled: var(--disabled);
+
+  /* Fixed, theme-independent. Teal means "you can reclaim this." */
+  --color-teal: #1f8a76;
+  --color-teal-hover: #17705f;
+  --color-teal-2: #7fcdbb;
+  --color-teal-3: #bfe6dc;
+
+  --font-sans: Figtree, system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --ease-out-soft: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-spring: cubic-bezier(0.3, 1.4, 0.5, 1);
+
+  --animate-sift-in: sift-in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-sift-sweep: sift-sweep 1.3s cubic-bezier(0.2, 0.8, 0.2, 1) 0.1s both;
+  --animate-sift-pulse: sift-pulse 1.1s ease-in-out infinite;
+
+  --shadow-window: 0 0 0 1px var(--line3), 0 40px 80px -40px rgba(34, 38, 43, 0.35);
+  --shadow-card-hover: 0 8px 20px -10px rgba(34, 38, 43, 0.3);
+  --shadow-nav-active: 0 1px 2px rgba(34, 38, 43, 0.08);
+  --shadow-knob: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Animatable 0→1 multiplier for conic-gradient rings (usage ring sweep). */
+@property --sw {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 1;
+}
+
+@keyframes sift-sweep { from { --sw: 0 } to { --sw: 1 } }
+@keyframes sift-in { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: none } }
+@keyframes sift-pulse {
+  0%, 100% { transform: scaleX(1); opacity: 1 }
+  50% { transform: scaleX(0.82); opacity: 0.7 }
+}
+@keyframes sift-fade { from { opacity: 0 } to { opacity: 1 } }
+@keyframes sift-pop {
+  from { opacity: 0; transform: translateY(-8px) scale(0.97) }
+  to { opacity: 1; transform: none }
+}
+@keyframes sift-scan {
+  0%, 100% { transform: translateY(0) }
+  50% { transform: translateY(64px) }
+}
+@keyframes sift-fall {
+  0% { transform: translateY(-6px); opacity: 0 }
+  30% { opacity: 1 }
+  100% { transform: translateY(46px); opacity: 0 }
+}
+@keyframes sift-shower {
+  0% { transform: translateY(0) rotate(0); opacity: 0 }
+  10% { opacity: 1 }
+  100% { transform: translateY(800px) rotate(240deg); opacity: 0 }
+}
+@keyframes sift-drop {
+  0% { opacity: 0; transform: translateY(-40px) }
+  70% { opacity: 1; transform: translateY(4px) }
+  100% { opacity: 1; transform: none }
+}
+
+html, body {
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.4s;
+  user-select: none;
+  cursor: default;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
