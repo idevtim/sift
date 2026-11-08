@@ -1,7 +1,7 @@
 {
   "name": "sift",
   "private": true,
-  "version": "1.1.0",
+  "version": "1.2.0",
   "type": "module",
   "description": "See how much space you can safely get back.",
   "license": "MIT",

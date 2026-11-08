@@ -103,6 +103,7 @@ export const demoStore = {
     return { freedBytes: sizeBytes, skipped: 0 };
   },
   uninstallApp(app: AppInfo): FreeUpReport {
+    if (app.running) throw `Quit ${app.name} first, then try again.`;
     const bytes = app.parts.reduce((sum, p) => sum + p.sizeBytes, 0);
     return this.freePaths([app.path], app.name, bytes, true);
   },

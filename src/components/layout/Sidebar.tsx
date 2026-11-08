@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useFindings, useSystemDrive } from "@/hooks/useFindings";
 import { usePlatform } from "@/hooks/usePlatform";
 import { resolveTheme } from "@/hooks/useTheme";
+import { useRescan } from "@/hooks/useRescan";
 import { useScan } from "@/hooks/useScan";
 import { useWindowDrag } from "@/hooks/useWindowDrag";
 import { fmtBig, fmtGB } from "@/lib/format";
@@ -40,6 +41,7 @@ export function Sidebar({ current, onNavigate }: SidebarProps) {
   const devBytes = dev ? defaultCleanable(dev) : 0;
   const { theme, setTheme, soundOn, toggleSound, powerToolsOpen, togglePowerTools } = usePrefs();
   const update = useUpdateStore();
+  const { rescan, busy: rescanning } = useRescan();
   const active = routeById(current).activeAs ?? current;
   const dark = resolveTheme(theme) === "dark";
 
@@ -132,18 +134,34 @@ export function Sidebar({ current, onNavigate }: SidebarProps) {
         </div>
       )}
 
-      {system && (
-        <div className="flex flex-col gap-2 rounded-[14px] bg-surface p-3">
-          <span className="text-sm font-semibold">{system.name}</span>
-          <div className="h-1.5 overflow-hidden rounded-[3px] bg-line">
-            <div
-              className="h-full rounded-[3px] bg-ink transition-[width] duration-1200"
-              style={{ width: `${(system.usedBytes / system.capacityBytes) * 100}%` }}
-            />
-          </div>
-          <span className="text-[13px] text-mut">{fmtBig(system.capacityBytes - system.usedBytes)} free</span>
+      <div className="flex flex-col gap-2 rounded-[14px] bg-surface p-3">
+        {system && (
+          <>
+            <span className="text-sm font-semibold">{system.name}</span>
+            <div className="h-1.5 overflow-hidden rounded-[3px] bg-line">
+              <div
+                className="h-full rounded-[3px] bg-ink transition-[width] duration-1200"
+                style={{ width: `${(system.usedBytes / system.capacityBytes) * 100}%` }}
+              />
+            </div>
+          </>
+        )}
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[13px] text-mut">{system ? `${fmtBig(system.capacityBytes - system.usedBytes)} free` : ""}</span>
+          <button
+            type="button"
+            disabled={rescanning}
+            title="Look at this computer again for changes"
+            onClick={() => {
+              play("tap");
+              void rescan();
+            }}
+            className="flex-none cursor-pointer rounded-full px-2 py-0.5 text-[13px] font-semibold text-mut2 shadow-[inset_0_0_0_1px_var(--line)] transition-[color,box-shadow,transform] duration-150 hover:text-ink hover:shadow-[inset_0_0_0_1px_var(--line2)] active:scale-[.96] disabled:cursor-default disabled:text-mut3 disabled:active:scale-100"
+          >
+            {rescanning ? <Busy>Scanning</Busy> : "↻ Rescan"}
+          </button>
         </div>
-      )}
+      </div>
 
       <div className="flex gap-2">
         <PillButton

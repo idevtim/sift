@@ -92,18 +92,23 @@ export function AppsView() {
         { action: { label: "View", route: "restore" } },
       );
     },
-    onError: (e, a) => toast(`Couldn't uninstall ${a.name}. ${String(e)}`, { tone: "problem" }),
+    onError: (e, a) => {
+      const msg = String(e);
+      // Still open: show it on the row, too.
+      if (msg.startsWith("Quit ")) {
+        queryClient.setQueryData<AppList>(["apps"], (list) =>
+          list ? { ...list, apps: list.apps.map((x) => (x.id === a.id ? { ...x, running: true } : x)) } : list,
+        );
+      }
+      toast(`Couldn't uninstall ${a.name}. ${msg}`, { tone: "problem" });
+    },
     onSettled: () => refreshAfterRemoval(queryClient),
   });
   const busy = free.isPending || remove.isPending;
 
-  const uninstall = (a: AppInfo) => {
-    if (a.running) {
-      toast(`Quit ${a.name} first, then try again.`, { tone: "problem" });
-      return;
-    }
-    remove.mutate(a);
-  };
+  // The list is cached, so `running` can be stale (the app was open when
+  // it was listed). Sift re-checks before uninstalling, so always ask.
+  const uninstall = (a: AppInfo) => remove.mutate(a);
 
   const clearCaches = (a: AppInfo) => {
     const caches = a.parts.find((p) => p.kind === "caches");

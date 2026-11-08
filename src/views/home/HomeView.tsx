@@ -45,7 +45,9 @@ function greeting() {
 
 export function HomeView({ onNavigate }: { onNavigate: (id: RouteId) => void }) {
   const { findings, picks, selectedBytes, isLoading, indexLoading } = useFindings();
-  const looking = isLoading || indexLoading;
+  // A rescan keeps the last results up while it walks, with live progress.
+  const { isFetching: scanning } = useScan();
+  const looking = isLoading || indexLoading || scanning;
   const hasItems = findings.length + picks.length > 0;
   const { system } = useSystemDrive();
   const limited = useFullAccess() === false;

@@ -89,6 +89,58 @@ impl Procs {
     fn running_from(&self, dir: &Path) -> bool {
         !dir.as_os_str().is_empty() && self.exes.iter().any(|exe| exe.starts_with(dir))
     }
+
+    /// A macOS app is open when its own program (`Contents/MacOS/…`) runs.
+    /// Login items, updaters and XPC helpers nested deeper in the bundle can
+    /// run with no window or Dock icon; those don't count — the user can't
+    /// quit them, and `stop_helpers` ends them on uninstall.
+    fn bundle_open(&self, bundle: &Path) -> bool {
+        let main = bundle.join("Contents/MacOS");
+        self.exes.iter().any(|exe| exe.parent() == Some(main.as_path()))
+    }
+}
+
+/// End the background helpers still running from inside a bundle that's
+/// about to be removed (the app itself is already closed). Waits up to ~3s
+/// for them to exit; anything that lingers keeps running from Restore,
+/// which is harmless since a rename doesn't touch open files.
+pub fn stop_helpers(app: &AppInfo) {
+    if app.source != AppSource::Bundle || app.path.is_empty() {
+        return;
+    }
+    let bundle = Path::new(&app.path);
+    let refresh = |sys: &mut sysinfo::System| {
+        sys.refresh_processes_specifics(
+            sysinfo::ProcessesToUpdate::All,
+            true,
+            sysinfo::ProcessRefreshKind::new().with_exe(sysinfo::UpdateKind::Always),
+        );
+    };
+    let helpers = |sys: &sysinfo::System| -> Vec<sysinfo::Pid> {
+        sys.processes()
+            .iter()
+            .filter(|(_, p)| p.exe().is_some_and(|e| e.starts_with(bundle)))
+            .map(|(pid, _)| *pid)
+            .collect()
+    };
+    let mut sys = sysinfo::System::new();
+    refresh(&mut sys);
+    let pids = helpers(&sys);
+    if pids.is_empty() {
+        return;
+    }
+    for pid in &pids {
+        if let Some(p) = sys.process(*pid) {
+            p.kill_with(sysinfo::Signal::Term);
+        }
+    }
+    for _ in 0..30 {
+        std::thread::sleep(std::time::Duration::from_millis(100));
+        refresh(&mut sys);
+        if helpers(&sys).is_empty() {
+            return;
+        }
+    }
 }
 
 /// A bundle id or app name is only used as a path segment if it's one plain
@@ -160,7 +212,7 @@ mod mac {
                     parts: parts(app, leftovers(&name, id.as_deref())),
                     last_opened_ms: last_opened(bundle),
                     installed_ms: None,
-                    running: procs.running_from(bundle),
+                    running: procs.bundle_open(bundle),
                     source: AppSource::Bundle,
                     icon: info.as_ref().and_then(|i| icon_file(bundle, i)),
                     path,
@@ -603,6 +655,19 @@ mod linux {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn only_the_main_program_means_open() {
+        let procs = |exe: &str| Procs { exes: vec![PathBuf::from(exe)], appimages: vec![] };
+        let classic = Path::new("/Applications/ChatGPT Classic.app");
+        // The app itself.
+        assert!(procs("/Applications/ChatGPT Classic.app/Contents/MacOS/ChatGPT").bundle_open(classic));
+        // Background helpers with no window: not "open".
+        assert!(!procs("/Applications/ChatGPT Classic.app/Contents/Library/LoginItems/Helper.app/Contents/MacOS/Helper").bundle_open(classic));
+        assert!(!procs("/Applications/ChatGPT Classic.app/Contents/Frameworks/Sparkle.framework/Versions/B/Autoupdate").bundle_open(classic));
+        // A different app with a similar name.
+        assert!(!procs("/Applications/ChatGPT.app/Contents/MacOS/ChatGPT").bundle_open(classic));
+    }
 
     #[test]
     fn hostile_bundle_ids_are_ignored() {

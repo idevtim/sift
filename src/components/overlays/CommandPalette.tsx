@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useFindings } from "@/hooks/useFindings";
 import { usePlatform } from "@/hooks/usePlatform";
 import { useReplayScan } from "@/hooks/useReplayScan";
+import { useRescan } from "@/hooks/useRescan";
 import { resolveTheme } from "@/hooks/useTheme";
 import { fmtGB, tildify } from "@/lib/format";
 import { isFreeable } from "@/lib/reasonCopy";
@@ -45,6 +46,7 @@ export function CommandPalette({ onNavigate }: { onNavigate: (id: RouteId) => vo
   const { theme, setTheme, soundOn, toggleSound, weeklyCheck } = usePrefs();
   const { selectedBytes } = useFindings();
   const replay = useReplayScan();
+  const { rescan } = useRescan();
   const q = useDebounced(query.trim(), 120);
   const { data: hits = [], isFetching } = useQuery({
     queryKey: ["index", "search", q],
@@ -95,6 +97,7 @@ export function CommandPalette({ onNavigate }: { onNavigate: (id: RouteId) => vo
         usePrefs.setState({ weeklyCheck: !weeklyCheck });
       },
     },
+    { group: "Actions", label: "Rescan", sub: "Look at this computer again for changes", glyph: "↻", tint: "var(--panel)", run: () => void rescan() },
     { group: "Actions", label: "Replay first scan", sub: "See the launch animation again", glyph: "↻", tint: "var(--panel)", run: replay },
     {
       group: "Actions",

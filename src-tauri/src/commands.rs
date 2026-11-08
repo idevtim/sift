@@ -571,6 +571,7 @@ pub async fn uninstall_app(
         if target.running {
             return Err(format!("Quit {} first, then try again.", target.name));
         }
+        scanners::apps::stop_helpers(&target);
         scanners::apps::run_uninstaller(&target)?;
         let paths = scanners::apps::paths_to_free(&target);
         free_paths_now(&app, &store, &index, &paths, target.name)
