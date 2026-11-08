@@ -14,6 +14,8 @@ Nothing is deleted on the spot. Whatever Sift removes waits in **Restore** for 3
 
 **[Download the latest release](https://github.com/idevtim/sift/releases/latest)** · [All releases](https://github.com/idevtim/sift/releases) · [What's new](release-notes/)
 
+> **New in 1.2.0:** a **Rescan** button to catch up with changes you make outside Sift, and uninstalling no longer asks you to quit an app that isn't open. [Release notes](release-notes/v1.2.0.md)
+
 ## Screenshots
 
 <p align="center">
@@ -62,9 +64,10 @@ Nothing is deleted on the spot. Whatever Sift removes waits in **Restore** for 3
 - **Power tools** for a closer look:
   - **Explore**: a treemap of your disk you can click into
   - **Duplicates**: exact copies side by side; keep the oldest, newest, or best-placed copy, or pick one yourself
-  - **Apps**: uninstall an app along with the settings and caches it leaves behind
+  - **Apps**: uninstall an app along with the settings and caches it leaves behind. On a Mac, background helpers like updaters are stopped for you, and only the app itself counts as open
   - **Developer**: Docker images, iOS simulators, Xcode DerivedData, Rust `target/` and `node_modules` from projects you haven't touched lately
 - **Weekly check-up**: one notification on Sundays if there's space worth freeing. It never removes anything on its own
+- **Rescan** any time from under your drive in the sidebar (or ⌘K / Ctrl+K), to pick up changes made in Finder, Explorer or other apps
 - **Quick search** with ⌘K / Ctrl+K across files, pages and actions
 - **Light and dark appearance**, optional sounds, and a short guided setup
 - **Auto-update**: new versions download in the background; restart from the sidebar to install
@@ -107,7 +110,7 @@ npm run tauri:build  # unsigned installers land in src-tauri/target/release/bund
 
 ## How it works
 
-1. **Look.** Sift reads names and sizes on your disk, never what's inside your files. The quick checks land in seconds; duplicates and old videos follow once the full scan finishes.
+1. **Look.** Sift reads names and sizes on your disk, never what's inside your files. The quick checks land in seconds; duplicates and old videos follow once the full scan finishes. Changed things outside Sift? Click **Rescan**; it only looks, never removes.
 2. **Review.** Each category is explained in plain words, so you know what you're removing.
 3. **Free up.** Your selection moves into a holding area on the same drive, which is instant.
 4. **Restore.** Anything you removed stays there for 30 days, then it's cleared for good.
