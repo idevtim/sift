@@ -157,12 +157,8 @@ fi
 # launch.
 codesign --force --timestamp --sign "$SIGNING_IDENTITY" "$DMG_PATH"
 
-echo "📤 Submitting DMG to notarytool (this can take 1–5 min)..."
-xcrun notarytool submit "$DMG_PATH" \
-  --apple-id "$APPLE_ID" \
-  --password "$APPLE_PASSWORD" \
-  --team-id "$APPLE_TEAM_ID" \
-  --wait
+echo "📤 Notarizing the DMG (this can take 1–5 min)..."
+node "$SCRIPT_DIR/notarize.mjs" "$DMG_PATH"
 
 echo "📎 Stapling notarization ticket to DMG..."
 xcrun stapler staple "$DMG_PATH"
@@ -252,19 +248,17 @@ if gh auth status >/dev/null 2>&1; then
 
   if gh release view "v$VERSION" --repo "$RELEASE_REPO" >/dev/null 2>&1; then
     echo "   Release exists — uploading ${#ASSETS[@]} asset(s)"
-    for asset in "${ASSETS[@]}"; do
-      echo "   uploading $(basename "$asset")"
-      gh release upload "v$VERSION" "$asset" --repo "$RELEASE_REPO" --clobber
-    done
   else
-    echo "   Creating draft release with ${#ASSETS[@]} asset(s)"
-    gh release create "v$VERSION" "${ASSETS[@]}" \
+    echo "   Creating draft release, then uploading ${#ASSETS[@]} asset(s)"
+    gh release create "v$VERSION" \
       --repo "$RELEASE_REPO" \
       --target "$RELEASE_TARGET" \
       --title "v$VERSION" \
       --notes-file "$RELEASE_NOTES" \
       --draft
   fi
+  # Live per-file progress (bar, speed, ETA); replaces same-named assets.
+  node "$SCRIPT_DIR/upload-release.mjs" --repo "$RELEASE_REPO" --tag "v$VERSION" "${ASSETS[@]}"
 
   # Verify every asset landed.
   PRESENT=$(gh release view "v$VERSION" --repo "$RELEASE_REPO" --json assets --jq '.assets[].name')

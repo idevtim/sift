@@ -11,7 +11,8 @@ export type RouteId =
   | "explore"
   | "duplicates"
   | "apps"
-  | "developer";
+  | "developer"
+  | "agents";
 
 export interface Route {
   id: RouteId;
@@ -31,6 +32,7 @@ export const allRoutes: Route[] = [
   { id: "duplicates", label: "Duplicates", group: "power" },
   { id: "apps", label: "Apps", group: "power" },
   { id: "developer", label: "Developer", group: "power" },
+  { id: "agents", label: "AI agents", group: "power" },
   { id: "review", label: "Review", activeAs: "home" },
   { id: "finding", label: "Review", activeAs: "home" },
   { id: "freeing", label: "Freeing", activeAs: "home" },

@@ -45,10 +45,13 @@ function useSize<T extends HTMLElement>() {
   return [setEl, size] as const;
 }
 
+/** A soft top-lit gloss over each tile's own colour. */
+const GLOSS = "linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,0) 55%)";
+
 function tileColor(n: ExploreNode, k: number) {
-  if (n.reason === "system") return { bg: "var(--stone)", fg: "var(--ink)" };
-  if (isFreeable(n.reason)) return { bg: "#1F8A76", fg: "#FFFFFF" };
-  return { bg: (n.hasChildren ? FOLDER_SHADES : FILE_SHADES)[k % 5], fg: "#FFFFFF" };
+  if (n.reason === "system") return { bg: `${GLOSS}, var(--stone)`, fg: "var(--ink)" };
+  if (isFreeable(n.reason)) return { bg: `${GLOSS}, linear-gradient(150deg, #2fb59a, #167a67)`, fg: "#FFFFFF" };
+  return { bg: `${GLOSS}, ${(n.hasChildren ? FOLDER_SHADES : FILE_SHADES)[k % 5]}`, fg: "#FFFFFF" };
 }
 
 export function ExploreView() {
@@ -83,7 +86,10 @@ export function ExploreView() {
                   <button
                     type="button"
                     onClick={() => open(crumbs.slice(0, d))}
-                    className={cn("cursor-pointer hover:text-teal", last ? "font-semibold text-ink" : "text-mut")}
+                    className={cn(
+                      "cursor-pointer rounded-full px-2.5 py-1 transition-[background-color,transform] duration-400 ease-spring active:scale-95",
+                      last ? "bg-glass-hi font-semibold text-ink ring-1 ring-[var(--st-edge)] ring-inset" : "text-mut hover:bg-glass-hi",
+                    )}
                   >
                     {c}
                   </button>
@@ -95,11 +101,13 @@ export function ExploreView() {
         )}
         <div className="flex items-baseline justify-between gap-5">
           <div className="flex min-w-0 items-baseline gap-3">
-            <span className="truncate text-[32px] font-bold tracking-[-0.02em]">{node.name}</span>
+            <span key={node.name} className="animate-rise truncate text-4xl font-extrabold tracking-[-0.02em]">
+              {node.name}
+            </span>
             <span className="flex-none text-xl font-medium text-mut3">{fmtGB(node.sizeBytes)}</span>
           </div>
-          <div className="flex flex-none gap-4 text-[13px] text-mut">
-            <Legend color="#1F8A76">Can be freed</Legend>
+          <div className="flex flex-none gap-3 rounded-full bg-glass px-3.5 py-1.5 text-[13px] text-mut ring-1 ring-[var(--st-edge)] ring-inset">
+            <Legend color="linear-gradient(150deg, #2fb59a, #167a67)">Can be freed</Legend>
             <Legend color="#3F444A">Folder</Legend>
             <Legend color="var(--stone)">Leave alone</Legend>
           </div>
@@ -125,14 +133,14 @@ export function ExploreView() {
             return (
               <div
                 key={n.name}
-                className="absolute box-border animate-sift-in"
+                className="absolute box-border animate-rise hover:z-10"
                 style={{
                   left: `${x}%`,
                   top: `${y}%`,
                   width: `${w}%`,
                   height: `${h}%`,
                   padding: GAP / 2,
-                  animationDelay: `${Math.min(k, 20) * 0.03}s`,
+                  animationDelay: `${Math.min(k, 20) * 0.025}s`,
                 }}
               >
                 <button
@@ -144,14 +152,17 @@ export function ExploreView() {
                     else select(n.name);
                   }}
                   className={cn(
-                    "box-border flex size-full min-h-0 min-w-0 cursor-pointer flex-col justify-between overflow-hidden text-left transition-[filter] duration-200 hover:brightness-115",
+                    "box-border flex size-full min-h-0 min-w-0 cursor-pointer flex-col justify-between overflow-hidden text-left transition-[filter,transform,box-shadow] duration-500 ease-spring hover:scale-[1.025] hover:brightness-110 hover:shadow-[0_14px_30px_-12px_rgba(0,0,0,.45)] active:scale-[.97]",
                     (full || nameOnly) && "px-3.5 py-3",
                   )}
                   style={{
                     background: bg,
                     color: fg,
                     borderRadius: radius,
-                    boxShadow: selected === n.name ? "inset 0 0 0 3px #BFE6DC" : "none",
+                    boxShadow:
+                      selected === n.name
+                        ? "inset 0 0 0 3px #BFE6DC, inset 0 1px 0 rgba(255,255,255,.2)"
+                        : "inset 0 1px 0 rgba(255,255,255,.18)",
                   }}
                 >
                   {(full || nameOnly) && <span className="truncate text-[15px] font-semibold">{n.name}</span>}
@@ -174,6 +185,7 @@ export function ExploreView() {
           onUp={() => open(crumbs.slice(0, -1))}
           picked={!!sel?.path && picks.some((p) => p.path === sel.path)}
           covered={!!sel?.reason && findings.some((f) => f.kind === COVERED_BY[sel.reason!])}
+          key={sel?.name ?? `here:${node.name}`}
           onPick={(n) => {
             play("tick");
             toggle({ path: n.path!, name: n.name, sizeBytes: n.sizeBytes, reason: n.reason });
@@ -230,13 +242,15 @@ function DetailPanel({ node, isSelection, canGoUp, onUp, picked, covered, onPick
   }
 
   return (
-    <div className="box-border flex w-[250px] flex-none flex-col gap-3 rounded-[18px] bg-panel p-[22px]">
+    <div className="box-border flex w-[250px] flex-none animate-rise flex-col gap-3 rounded-[22px] bg-glass p-[22px] shadow-[var(--st-shadow)] ring-1 ring-[var(--st-edge)] ring-inset">
       <span className="text-xl leading-[1.2] font-bold break-words">{node.name}</span>
       {node.path && (
         <span className="font-mono text-xs leading-[1.4] break-all text-mut select-text">{tildify(node.path)}</span>
       )}
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-lg font-semibold">{fmtGB(node.sizeBytes)}</span>
+        <span className={cn("text-lg font-semibold tabular-nums", isSelection && freeable && "text-gain")}>
+          {fmtGB(node.sizeBytes)}
+        </span>
         {isSelection && node.reason && (
           <span className={cn("rounded-full px-[9px] py-[3px] text-xs font-semibold", freeable ? "bg-mint text-tealtx" : "bg-line text-mut2")}>
             {freeable ? "Safe to remove" : "Leave alone"}
@@ -255,8 +269,10 @@ function DetailPanel({ node, isSelection, canGoUp, onUp, picked, covered, onPick
           type="button"
           onClick={action.run}
           className={cn(
-            "cursor-pointer rounded-full p-3 text-center text-sm font-semibold shadow-[inset_0_0_0_1px_var(--line2)] transition-colors duration-200",
-            action.primary ? "bg-teal text-white hover:bg-tealtx" : "bg-surface text-ink",
+            "cursor-pointer rounded-full p-3 text-center text-sm font-semibold shadow-[inset_0_0_0_1px_var(--line2)] transition-[background-color,transform] duration-500 ease-spring hover:scale-[1.03] active:scale-95",
+            action.primary
+              ? "bg-teal text-white shadow-[0_10px_24px_-10px_rgba(31,138,118,.6)] hover:bg-tealtx"
+              : "bg-glass-hi text-ink",
           )}
         >
           {action.label}

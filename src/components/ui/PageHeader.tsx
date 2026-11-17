@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 export function PageHeader({ title, children }: { title: ReactNode; children?: ReactNode }) {
   return (
     <div className="flex flex-col gap-2">
-      <h2 className="text-4xl font-bold tracking-[-0.02em]">{title}</h2>
+      <h2 className="text-4xl font-extrabold tracking-[-0.02em]">{title}</h2>
       {children && <span className="text-base text-mut">{children}</span>}
     </div>
   );

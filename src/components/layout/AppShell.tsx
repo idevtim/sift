@@ -12,7 +12,7 @@ interface AppShellProps {
 
 export function AppShell({ current, onNavigate, children, overlays }: AppShellProps) {
   return (
-    <div className="relative flex h-full bg-surface text-ink transition-colors duration-400">
+    <div className="stage relative flex h-full text-ink transition-colors duration-400">
       <Sidebar current={current} onNavigate={onNavigate} />
       {/* Keyed by route so each screen replays its enter animation. */}
       <main key={current} className="relative min-w-0 flex-1 overflow-hidden">

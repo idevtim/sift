@@ -108,7 +108,7 @@ export function DriveDetailView() {
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2.5">
             <span className="text-[40px] font-bold tracking-[-0.03em]">{drive.name}</span>
-            <span className={cn("rounded-full px-2.5 py-1 text-[13px] font-semibold", drive.protected ? "bg-mint text-tealtx" : "bg-surface text-mut2")}>
+            <span className={cn("rounded-full px-2.5 py-1 text-[13px] font-semibold", drive.protected ? "bg-mint text-tealtx" : "bg-glass-hi text-mut2")}>
               {kindLabel[drive.kind]}
             </span>
           </div>
@@ -123,7 +123,7 @@ export function DriveDetailView() {
               type="button"
               disabled={eject.isPending}
               onClick={() => eject.mutate(drive)}
-              className="cursor-pointer rounded-full bg-surface px-5 py-3 text-[15px] font-semibold shadow-[inset_0_0_0_1px_var(--line2)] hover:bg-panel"
+              className="cursor-pointer rounded-full bg-glass-hi px-5 py-3 text-[15px] font-semibold shadow-[inset_0_0_0_1px_var(--line2)] hover:bg-glass-hi"
             >
               {eject.isPending ? <Busy>Ejecting…</Busy> : "Eject"}
             </button>
@@ -167,9 +167,9 @@ export function DriveDetailView() {
         <div className="rounded-2xl bg-sand px-5 py-4 text-[15px] leading-[1.45]">{String(eject.error)}</div>
       )}
 
-      <div className="grid grid-cols-2 gap-2.5">
+      <div className="stagger grid grid-cols-2 gap-2.5">
         {rows.map((r) => (
-          <div key={r.name} className="flex items-center gap-3.5 rounded-[18px] bg-panel px-[18px] py-4">
+          <div key={r.name} className="flex items-center gap-3.5 rounded-[18px] bg-glass ring-1 ring-inset ring-[var(--st-edge)] px-[18px] py-4">
             <div className="size-3.5 flex-none rounded-[5px]" style={{ background: r.color }} />
             <div className="flex min-w-0 flex-1 flex-col gap-[3px]">
               <span className="text-base font-semibold">{r.name}</span>

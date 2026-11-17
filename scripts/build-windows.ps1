@@ -20,7 +20,7 @@ $ReleaseTarget = 'main'                    # branch on $ReleaseRepo to tag
 # running an x64 PowerShell (via Prism), the host is amd64.
 $hostArch = if ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64') { 'arm64' } else { 'amd64' }
 $Targets = @(
-  [pscustomobject]@{ Triple = 'aarch64-pc-windows-msvc'; Arch = 'arm64'; RustArch = 'aarch64'; Machine = 0xAA64; VcvarsArg = "${hostArch}_arm64" },
+  [pscustomobject]@{ Triple = 'aarch64-pc-windows-msvc'; Arch = 'arm64'; RustArch = 'aarch64'; Machine = 0xAA64; VcvarsArg = if ($hostArch -eq 'arm64') { 'arm64' } else { 'amd64_arm64' } },
   [pscustomobject]@{ Triple = 'x86_64-pc-windows-msvc';  Arch = 'x64';   RustArch = 'x86_64';  Machine = 0x8664; VcvarsArg = if ($hostArch -eq 'amd64') { 'amd64' } else { 'arm64_amd64' } }
 )
 
@@ -42,6 +42,8 @@ function Import-VsDevEnv {
       [Environment]::SetEnvironmentVariable($matches[1], $matches[2])
     }
   }
+  # vcvarsall exits 0 even on an invalid arch argument, so check it worked.
+  if (-not $env:INCLUDE) { throw "vcvarsall.bat $Arch didn't set INCLUDE (invalid arch argument?)" }
 }
 
 # Refresh PATH from registry and prepend LLVM if present (clang is needed to
@@ -370,29 +372,23 @@ foreach ($b in $bundles) {
 if ($signingEnabled) { $assets += $latestJsonPath }
 
 if (-not $releaseExists) {
-  $first, $rest = $assets
   Write-Host ""
-  Write-Host "[*] Creating draft release v$pkgVersion on $ReleaseRepo with $((Split-Path -Leaf $first))..."
-  & gh release create "v$pkgVersion" $first `
+  Write-Host "[*] Creating draft release v$pkgVersion on $ReleaseRepo..."
+  & gh release create "v$pkgVersion" `
     --repo $ReleaseRepo `
     --target $ReleaseTarget `
     --title "v$pkgVersion" `
     --notes-file $releaseNotes `
     --draft
   if ($LASTEXITCODE -ne 0) { Write-Host "[X] gh release create failed"; exit 1 }
-  $remaining = $rest
 } else {
   Write-Host ""
-  Write-Host "[*] Release v$pkgVersion exists on $ReleaseRepo - uploading $($assets.Count) asset(s)..."
-  $remaining = $assets
+  Write-Host "[*] Release v$pkgVersion exists on $ReleaseRepo"
 }
 
-foreach ($a in $remaining) {
-  $name = Split-Path -Leaf $a
-  Write-Host "    uploading $name"
-  & gh release upload "v$pkgVersion" $a --repo $ReleaseRepo --clobber
-  if ($LASTEXITCODE -ne 0) { Write-Host "[X] gh release upload failed for $name"; exit 1 }
-}
+# Live per-file progress (bar, speed, ETA); replaces same-named assets.
+& node (Join-Path $PSScriptRoot "upload-release.mjs") --repo $ReleaseRepo --tag "v$pkgVersion" @assets
+if ($LASTEXITCODE -ne 0) { Write-Host "[X] Upload failed"; exit 1 }
 
 # Verify every asset landed.
 $assetNames = & gh release view "v$pkgVersion" --repo $ReleaseRepo --json assets --jq '.assets[].name'

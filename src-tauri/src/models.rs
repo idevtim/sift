@@ -336,3 +336,60 @@ pub struct DriveBreakdown {
     pub photos: u64,
     pub videos: u64,
 }
+
+// ── AI agents ────────────────────────────────────────────────────────
+
+/// What AI coding tools leave on disk, grouped by tool (`agent_report`).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AgentReport {
+    pub tools: Vec<AgentTool>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AgentTool {
+    /// Stable key ("claude-code", "cursor", …).
+    pub id: String,
+    pub name: String,
+    /// The app is open: its caches can't be cleared until it quits.
+    pub open: bool,
+    pub items: Vec<AgentItem>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum AgentItemKind {
+    Worktree,
+    Cache,
+    OldVersion,
+    History,
+    Workspace,
+    Model,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AgentItem {
+    /// Stable key for `clean_agents` (tool, kind and path). Never a path the
+    /// backend trusts: cleaning looks every id up again.
+    pub id: String,
+    pub kind: AgentItemKind,
+    pub name: String,
+    /// Plain-words line under the name.
+    pub detail: String,
+    /// Where it is (Power tools show paths), for "Show in Finder".
+    pub path: String,
+    pub size_bytes: u64,
+    pub last_used_ms: Option<u64>,
+    /// Kept in Restore for 30 days; false = deleted for good (caches).
+    pub held: bool,
+    /// Selected when the page opens.
+    pub default_on: bool,
+    /// False for things Sift only lists (local models).
+    pub removable: bool,
+    /// Something to know first ("Has changes you haven't committed").
+    pub note: Option<String>,
+    /// Can't be cleared right now (its app is open, or a program is using it).
+    pub blocked: Option<String>,
+}

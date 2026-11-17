@@ -21,13 +21,13 @@ export function BigFilesView() {
       </PageHeader>
       {isLoading && <Loading>Looking through your files…</Loading>}
       {!isLoading && files.length === 0 && (
-        <div className="max-w-[520px] rounded-[20px] bg-panel p-7 text-base leading-[1.45] text-mut2">
+        <div className="max-w-[520px] rounded-[20px] bg-glass ring-1 ring-inset ring-[var(--st-edge)] p-7 text-base leading-[1.45] text-mut2">
           Nothing big is sitting around. Files over 100 MB will show up here.
         </div>
       )}
-      <div className="flex flex-col gap-2">
+      <div className="stagger flex flex-col gap-2">
         {files.map((f) => (
-          <div key={f.path} className="flex animate-[sift-in_.4s_ease_both] items-center gap-[18px] rounded-[18px] bg-panel px-[18px] py-4">
+          <div key={f.path} className="flex items-center gap-[18px] rounded-[18px] bg-glass ring-1 ring-inset ring-[var(--st-edge)] px-[18px] py-4">
             <div className="flex min-w-0 flex-1 flex-col gap-2">
               <div className="flex justify-between gap-3">
                 <span className="min-w-0 truncate text-base font-semibold">{f.name}</span>
@@ -53,7 +53,7 @@ export function BigFilesView() {
                   },
                 )
               }
-              className="cursor-pointer rounded-full bg-surface px-4 py-[9px] text-sm font-semibold shadow-[inset_0_0_0_1px_var(--line2)] transition-colors duration-200 hover:bg-mint active:scale-[.97]"
+              className="cursor-pointer rounded-full bg-glass-hi px-4 py-[9px] text-sm font-semibold shadow-[inset_0_0_0_1px_var(--line2)] transition-colors duration-200 hover:bg-mint active:scale-[.97]"
             >
               {remove.isPending && remove.variables?.paths[0] === f.path ? <Busy>Removing…</Busy> : "Remove"}
             </button>

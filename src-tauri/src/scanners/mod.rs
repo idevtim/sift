@@ -1,3 +1,4 @@
+pub mod agents;
 pub mod disks;
 pub mod apps;
 pub mod devtools;

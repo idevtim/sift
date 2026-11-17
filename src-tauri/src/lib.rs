@@ -60,6 +60,8 @@ pub fn run() {
             commands::search_index,
             commands::big_files,
             commands::dev_report,
+            commands::agent_report,
+            commands::clean_agents,
             commands::clean_docker,
             commands::clean_simulators,
             commands::find_duplicates,
