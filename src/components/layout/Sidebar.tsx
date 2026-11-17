@@ -171,7 +171,7 @@ export function Sidebar({ current, onNavigate }: SidebarProps) {
   );
 
   return (
-    <aside className="flex w-[220px] flex-none flex-col gap-4 px-3 pt-5 pb-4">
+    <aside className="flex w-[220px] flex-none flex-col gap-3.5 px-3 pt-5 pb-4">
       {/* macOS draws native traffic lights here (overlay title bar); on
           Windows/Linux the native title bar sits above, so no inset. */}
       {platform === "macos" && <div ref={dragRef} className="-mx-3 -mt-5 h-8 flex-none" />}
@@ -330,7 +330,7 @@ function NavItem({
       onClick={onClick}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "group flex w-full cursor-pointer items-center gap-2.5 rounded-[14px] py-1.5 pr-2.5 pl-1.5 text-left transition-[background-color,box-shadow,transform] duration-300 active:scale-[.97]",
+        "group flex w-full cursor-pointer items-center gap-2.5 rounded-[14px] py-[5px] pr-2.5 pl-1.5 text-left transition-[background-color,box-shadow,transform] duration-300 active:scale-[.97]",
         active ? "st-glass" : "hover:bg-[var(--st-row)]",
       )}
       style={active ? { backgroundColor: "var(--st-glass-hi)" } : undefined}

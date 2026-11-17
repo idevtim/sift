@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { CountingAmount } from "@/components/ui/CountingAmount";
 import { DriveRing } from "@/components/ui/DriveRing";
 import type { IconName } from "@/components/ui/Icon";
 import { IconTile } from "@/components/ui/IconTile";
@@ -403,17 +404,25 @@ export function HomeView({ onNavigate }: { onNavigate: (id: RouteId) => void }) 
   const current = rows.find((r) => r.status === "active") ?? rows[rows.length - 1];
 
   let eyebrow: string;
-  let headline: string;
+  let headline: ReactNode;
   let subline: string;
   if (phase === "running") {
     eyebrow = "Sweeping…";
-    headline = `${fmtGB(free.progress * free.totalBytes)} of ${fmtGB(free.totalBytes)}`;
+    headline = (
+      <>
+        <CountingAmount bytes={free.progress * free.totalBytes} to={free.totalBytes} /> of {fmtGB(free.totalBytes)}
+      </>
+    );
     subline = current ? `Clearing ${current.name.toLowerCase()}. You can keep using your computer.` : "";
   } else if (phase === "done") {
     const keptAll = free.items.every((i) => i.held);
     const keptNone = free.items.every((i) => !i.held);
     eyebrow = "All done";
-    headline = `You got ${fmtGB(freedCount)} back`;
+    headline = (
+      <>
+        You got <CountingAmount bytes={freedCount} to={free.freedBytes} /> back
+      </>
+    );
     subline = keptNone
       ? "Those were cleared for good. Apps rebuild what they need."
       : keptAll
@@ -617,8 +626,8 @@ export function HomeView({ onNavigate }: { onNavigate: (id: RouteId) => void }) 
             title="Duplicates"
             hue="#5a68d8"
             glyph={blob("#9aa8ff", "#4b55c9", "size-[92px] rotate-[18deg] rounded-[28px]")}
-            value={!scanned ? <Spinner size={18} className="st-mut" /> : dupeBytes > 0 ? fmtGB(dupeBytes) : "None"}
-            sub={dupeBytes > 0 ? `in ${dupes?.length ?? 0} sets of copies` : "No copies found"}
+            value={!dupes ? <Spinner size={18} className="st-mut" /> : dupeBytes > 0 ? fmtGB(dupeBytes) : "None"}
+            sub={!dupes ? "Looking for copies…" : dupeBytes > 0 ? `in ${dupes.length} sets of copies` : "No copies found"}
             gain={dupeBytes > 0}
             onClick={() => go("duplicates")}
           />
@@ -627,8 +636,8 @@ export function HomeView({ onNavigate }: { onNavigate: (id: RouteId) => void }) 
             title="Developer"
             hue="#4f7891"
             glyph={blob("#d6e6f2", "#3f5a6d", "size-[84px] rounded-full")}
-            value={!scanned ? <Spinner size={18} className="st-mut" /> : devBytes > 0 ? fmtGB(devBytes) : "None"}
-            sub={devBytes > 0 ? "of build output tools rebuild" : "No old build output"}
+            value={!dev ? <Spinner size={18} className="st-mut" /> : devBytes > 0 ? fmtGB(devBytes) : "None"}
+            sub={!dev ? "Looking for build output…" : devBytes > 0 ? "of build output tools rebuild" : "No old build output"}
             gain={devBytes > 0}
             onClick={() => go("developer")}
           />
@@ -637,7 +646,7 @@ export function HomeView({ onNavigate }: { onNavigate: (id: RouteId) => void }) 
             title="Big files"
             hue="#8a4fc7"
             glyph={blob("#d3b5ff", "#7a4fd6", "size-[88px] -rotate-[10deg] rounded-[24px]")}
-            value={!scanned ? <Spinner size={18} className="st-mut" /> : (big?.length ?? 0).toLocaleString()}
+            value={!big ? <Spinner size={18} className="st-mut" /> : big.length.toLocaleString()}
             sub="large files worth a look"
             onClick={() => go("big-files")}
           />

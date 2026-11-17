@@ -1,4 +1,5 @@
 import { IconTile } from "@/components/ui/IconTile";
+import { CountingAmount } from "@/components/ui/CountingAmount";
 import { DriveRing } from "@/components/ui/DriveRing";
 import { useSystemDrive } from "@/hooks/useFindings";
 import { Spinner } from "@/components/ui/Spinner";
@@ -43,7 +44,8 @@ export function FreeingView() {
         <div className="flex flex-col gap-1.5">
           <span className="text-[13px] font-semibold tracking-[.06em] text-mut uppercase">Freeing up space…</span>
           <span className="text-[40px] leading-[1.05] font-extrabold tracking-[-0.03em] tabular-nums">
-            {fmtGB(totalBytes * progress)} <span className="text-mut3">of {fmtGB(totalBytes)}</span>
+            <CountingAmount bytes={totalBytes * progress} to={totalBytes} />{" "}
+            <span className="text-mut3">of {fmtGB(totalBytes)}</span>
           </span>
           {current && (
             <span className="text-[15px] text-mut">Clearing {current.name.toLowerCase()}. You can keep using your computer.</span>

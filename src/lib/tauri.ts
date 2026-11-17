@@ -42,8 +42,11 @@ async function call<T>(cmd: string, fallback: () => T | Promise<T>, args?: Recor
 /** Pretend a fixture took a moment, so loading states and the scan overlay are visible in the browser. */
 const slow = <T,>(value: () => T, ms = 400) => () => new Promise<T>((r) => setTimeout(() => r(value()), ms));
 
-/** Browser demo: access turns on a moment after "Open System Settings". */
-let demoAccess = false;
+/**
+ * Browser demo: access turns on a moment after "Open System Settings".
+ * `?access` starts with it on (screenshots without the permission banner).
+ */
+let demoAccess = typeof location !== "undefined" && new URLSearchParams(location.search).has("access");
 
 export const api = {
   /** macOS Full Disk Access. Always true on Windows and Linux. */

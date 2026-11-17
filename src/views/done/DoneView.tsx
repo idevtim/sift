@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/Button";
+import { CountingAmount } from "@/components/ui/CountingAmount";
 import { useCountUp } from "@/hooks/useCountUp";
 import { useSystemDrive } from "@/hooks/useFindings";
 import { deviceName, usePlatform } from "@/hooks/usePlatform";
-import { fmtBig, fmtGB } from "@/lib/format";
+import { fmtBig } from "@/lib/format";
 import { play } from "@/lib/sound";
 import type { RouteId } from "@/routes";
 import { useFreeStore } from "@/stores/freeStore";
@@ -105,7 +106,7 @@ export function DoneView({ onNavigate }: { onNavigate: (id: RouteId) => void }) 
         <div className="flex flex-col items-center gap-3">
           <span className="text-[13px] font-semibold tracking-[.06em] text-mut uppercase">All done</span>
           <span className="text-[56px] leading-none font-extrabold tracking-[-0.04em] tabular-nums">
-            You got <span className="text-gain">{fmtGB(count)}</span> back
+            You got <CountingAmount className="text-gain" bytes={count} to={freedBytes} /> back
           </span>
           <span className="max-w-[540px] text-[17px] leading-[1.5] text-pretty text-mut">
             {system && `Your ${device} now has ${fmtBig(system.capacityBytes - system.usedBytes)} free. `}

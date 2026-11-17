@@ -19,12 +19,12 @@ Almost everything Sift removes waits in **Restore** for 30 days, so you can chan
 ## Screenshots
 
 <p align="center">
-  <img src="assets/screenshots/home.png" alt="Sift Home: 32.2 GB can be freed today, with old installers, the Trash, app leftovers, temporary files, duplicate photos and large old videos" width="420">
-  <img src="assets/screenshots/review.png" alt="Review: every category explained in plain words, safe ones switched on, with See all links and the total you'll free up" width="420">
+  <img src="assets/screenshots/home.png" alt="Sift Home: 32.2 GB ready to sweep, with old installers, the Trash, app leftovers and temporary files each marked as kept in Restore or deleted for good, a Sweep button, the drive shown inside a ring of the disk, and tiles for Duplicates, Developer, Big files and Restore" width="420">
+  <img src="assets/screenshots/agents.png" alt="AI agents: what AI coding tools leave behind, with leftover worktrees, old Claude Code versions and caches per tool, a worktree with uncommitted changes switched off, and local models listed only" width="420">
 </p>
 
 <p align="center">
-  <img src="assets/screenshots/restore.png" alt="Restore: removed items kept for 30 days with Restore and Clear now buttons, and a Cleared for good section" width="420">
+  <img src="assets/screenshots/review.png" alt="Review: every category explained in plain words, safe ones switched on, with See all links and the total you'll free up" width="420">
   <img src="assets/screenshots/duplicates.png" alt="Duplicates: sets of identical files listed by how much they free, with the selected set's copies side by side, a Keep or Remove label on each, and a choice of keeping the oldest, best-placed or newest copy" width="420">
 </p>
 
@@ -33,8 +33,13 @@ Almost everything Sift removes waits in **Restore** for 30 days, so you can chan
 <br>
 
 <p align="center">
+  <img src="assets/screenshots/restore.png" alt="Restore: removed items kept for 30 days with Restore and Clear now buttons, and a Cleared for good section for the Trash and temporary files" width="420">
   <img src="assets/screenshots/see-all.png" alt="See all: every file behind a category, biggest first, with Show in Finder and remove-one-at-a-time buttons" width="420">
+</p>
+
+<p align="center">
   <img src="assets/screenshots/done.png" alt="All done: You got 32.2 GB back, with a link to see what was removed" width="420">
+  <img src="assets/screenshots/apps.png" alt="Apps: tiles for apps not opened in six months, all apps and their caches, with one app opened to show what uninstalling it would remove" width="420">
 </p>
 
 <p align="center">
