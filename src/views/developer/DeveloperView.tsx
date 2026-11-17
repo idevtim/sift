@@ -73,6 +73,16 @@ export const defaultCleanable = (report: DevReport) =>
     .filter((r) => r.defaultOn)
     .reduce((s, r) => s + r.bytes, 0);
 
+/** Each row's tile: a short tool tag on its own colour. */
+const TAGS: Record<string, { tag: string; hue: [string, string] }> = {
+  docker: { tag: "DK", hue: ["#7cc4ff", "#2d7fd6"] },
+  simulators: { tag: "SIM", hue: ["#c3ccd6", "#5b6672"] },
+  derivedData: { tag: "XC", hue: ["#8fd0ff", "#3a6fd6"] },
+  rustTarget: { tag: "RS", hue: ["#ffb98a", "#c8582a"] },
+  nodeModules: { tag: "JS", hue: ["#c9e98a", "#5f9a2e"] },
+  packageCaches: { tag: "PK", hue: ["#d3b5ff", "#7a4fd6"] },
+};
+
 export function DeveloperView() {
   const { data: report, isLoading } = useQuery(queries.dev);
   const [age, setAge] = useState<Age>(DEFAULT_AGE);
@@ -122,10 +132,10 @@ export function DeveloperView() {
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col gap-2 overflow-auto px-[52px]">
+      <div key={age} className="stagger flex flex-1 flex-col gap-2 overflow-auto px-9 pb-2">
         {isLoading && <Loading>Looking for build output…</Loading>}
         {!isLoading && list.length === 0 && (
-          <div className="max-w-[520px] rounded-[20px] bg-panel p-7 text-base leading-[1.45] text-mut2">
+          <div className="max-w-[520px] rounded-[20px] bg-glass ring-1 ring-inset ring-[var(--st-edge)] p-7 text-base leading-[1.45] text-mut2">
             Nothing to clean. Projects untouched for {age} days will show their build output here.
           </div>
         )}
@@ -143,27 +153,47 @@ export function DeveloperView() {
                 setDoneNote(null);
               }}
               className={cn(
-                "flex cursor-pointer items-center gap-4 rounded-2xl px-[18px] py-[13px] text-left transition-colors duration-250 hover:bg-hover",
-                on ? "bg-panel" : "bg-surface",
+                "group flex flex-none cursor-pointer items-center gap-4 rounded-[20px] px-[18px] py-[13px] text-left transition-[background-color,box-shadow,transform] duration-300 hover:bg-glass-hi active:scale-[.99]",
+                on ? "bg-glass-hi shadow-[inset_0_0_0_1px_var(--st-edge)]" : "bg-glass/40",
               )}
             >
+              {TAGS[r.id] && (
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    "flex size-11 flex-none items-center justify-center rounded-[13px] text-[13px] font-extrabold tracking-[.02em] text-white transition-[transform,opacity] duration-500 ease-spring group-hover:scale-110 group-hover:-rotate-6",
+                    !on && "opacity-55",
+                  )}
+                  style={{
+                    background: `linear-gradient(140deg, ${TAGS[r.id].hue[0]}, ${TAGS[r.id].hue[1]})`,
+                    boxShadow: "inset 0 1px 0 rgba(255,255,255,.45), 0 4px 12px -4px rgba(0,0,0,.3)",
+                  }}
+                >
+                  {TAGS[r.id].tag}
+                </span>
+              )}
               <div className="flex min-w-0 flex-1 flex-col gap-1">
                 <span className="text-base font-semibold">{r.name}</span>
                 <span className="truncate font-mono text-xs text-mut">{r.path}</span>
                 <span className="text-[13px] text-mut2">{r.why}</span>
               </div>
-              <span className="w-[76px] text-right text-base font-semibold tabular-nums">{fmtGB(r.bytes)}</span>
+              <span className={cn("w-[76px] text-right text-base font-semibold tabular-nums", on ? "text-gain" : "text-mut")}>
+                {fmtGB(r.bytes)}
+              </span>
               <Toggle on={on} />
             </button>
           );
         })}
       </div>
 
-      <div className="flex items-center justify-between gap-5 border-t border-line px-[52px] py-[18px]">
+      <div className="mx-9 mt-3 mb-6 flex animate-rise items-center justify-between gap-5 rounded-[24px] bg-glass-hi py-4 pr-4 pl-7 shadow-[inset_0_0_0_1px_var(--st-edge),var(--st-shadow)] backdrop-blur-xl [animation-delay:.2s]">
         <div className="flex flex-col gap-0.5">
           <span className="text-sm text-mut">Selected</span>
-          <span className="text-[26px] font-bold tracking-[-0.02em] tabular-nums">{fmtGB(total)}</span>
+          <span className="text-[26px] font-extrabold tracking-[-0.02em] text-gain tabular-nums">{fmtGB(total)}</span>
         </div>
+        <span className="ml-auto max-w-[300px] text-right text-[13px] leading-[1.4] text-mut">
+          Cleared right away, not kept in Restore. Your tools rebuild these when they need them.
+        </span>
         <Button
           className={cn("px-6 py-3.5 text-base", doneNote && "bg-line text-mut2 hover:bg-line")}
           disabled={total === 0 || clean.isPending || !!doneNote}

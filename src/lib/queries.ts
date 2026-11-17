@@ -28,6 +28,7 @@ export const queries = {
     staleTime: Infinity,
   }),
   apps: { queryKey: ["apps"], queryFn: api.listApps, staleTime: Infinity },
+  agents: { queryKey: ["agents"], queryFn: api.agentReport, staleTime: 60_000 },
   driveBreakdown: (mountPoint: string) => ({
     queryKey: ["drive-breakdown", mountPoint],
     queryFn: () => api.driveBreakdown(mountPoint),

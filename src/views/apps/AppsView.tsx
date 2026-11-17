@@ -9,7 +9,7 @@ import { queries } from "@/lib/queries";
 import { refreshAfterRemoval } from "@/lib/refresh";
 import { play } from "@/lib/sound";
 import { api } from "@/lib/tauri";
-import { ago, isStale } from "@/lib/time";
+import { ago, daysSince, isStale } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { toast } from "@/stores/toastStore";
 import type { AppInfo, AppList, AppPartKind, AppSource } from "@/types/api";
@@ -22,6 +22,11 @@ const partLabel: Record<AppPartKind, string> = {
 };
 
 const totalOf = (a: AppInfo) => a.parts.reduce((s, p) => s + p.sizeBytes, 0);
+const cachesOf = (a: AppInfo) => a.parts.find((p) => p.kind === "caches")?.sizeBytes ?? 0;
+
+/** Not opened in half a year (and not open now): the "Unused" filter. */
+const UNUSED_DAYS = 182;
+const isUnused = (a: AppInfo) => !a.running && !!a.lastOpenedMs && daysSince(a.lastOpenedMs) >= UNUSED_DAYS;
 
 /** Apps that run their own uninstaller before Sift clears the leftovers. */
 const ownUninstaller = (s: AppSource) => s === "installer" || s === "flatpak" || s === "snap";
@@ -65,7 +70,10 @@ export function AppsView() {
   const free = useFreePaths();
   const platform = usePlatform();
   const queryClient = useQueryClient();
-  const apps = data?.apps ?? [];
+  const all = data?.apps ?? [];
+  const [show, setShow] = useState<"all" | "unused">("all");
+  const unused = all.filter(isUnused);
+  const apps = show === "unused" ? unused : all;
 
   const remove = useMutation({
     mutationFn: api.uninstallApp,
@@ -138,6 +146,54 @@ export function AppsView() {
       <PageHeader title="Apps">
         Includes the hidden files each app leaves around. Uninstalling here removes everything, not just the app.
       </PageHeader>
+      {all.length > 0 && (
+        <div className="stagger grid flex-none grid-cols-3 gap-3.5">
+          <SummaryTile
+            title="Not opened in 6 months"
+            value={unused.length ? fmtGB(unused.reduce((s, a) => s + totalOf(a), 0)) : "None"}
+            sub={
+              unused.length
+                ? `${unused.length} ${unused.length === 1 ? "app" : "apps"} · tap to see ${unused.length === 1 ? "it" : "them"}`
+                : "You use everything you have"
+            }
+            hue="#e0743a"
+            gain={unused.length > 0}
+            on={show === "unused"}
+            onClick={
+              unused.length
+                ? () => {
+                    play("tap");
+                    setOpen(null);
+                    setShow(show === "unused" ? "all" : "unused");
+                  }
+                : undefined
+            }
+          />
+          <SummaryTile
+            title="All apps"
+            value={fmtGB(all.reduce((s, a) => s + totalOf(a), 0))}
+            sub={`${all.length} ${all.length === 1 ? "app" : "apps"}, with what they leave around`}
+            hue="#7a4fd6"
+            on={show === "all"}
+            onClick={
+              show === "all"
+                ? undefined
+                : () => {
+                    play("tap");
+                    setOpen(null);
+                    setShow("all");
+                  }
+            }
+          />
+          <SummaryTile
+            title="App caches"
+            value={fmtGB(all.reduce((s, a) => s + cachesOf(a), 0))}
+            sub="Apps rebuild these when they need them"
+            hue="#2d7fd6"
+            gain
+          />
+        </div>
+      )}
       {isLoading && <Loading>Measuring your apps…</Loading>}
       {remove.isPending && remove.variables && ownUninstaller(remove.variables.source) && (
         <Note tone="sand">
@@ -147,7 +203,7 @@ export function AppsView() {
         </Note>
       )}
       {data && !data.supported && (
-        <div className="max-w-[560px] rounded-[20px] bg-panel p-7 text-base leading-[1.45] text-mut2">
+        <div className="max-w-[560px] rounded-[20px] bg-glass ring-1 ring-inset ring-[var(--st-edge)] p-7 text-base leading-[1.45] text-mut2">
           Sift can uninstall Flatpaks, Snaps and AppImages, and didn't find any. For apps from your package manager, use
           its own tools.
         </div>
@@ -158,7 +214,7 @@ export function AppsView() {
         </span>
       )}
 
-      <div className="flex flex-col">
+      <div key={show} className="stagger flex flex-col">
         {apps.map((a) => {
           const isOpen = open === a.id;
           const total = totalOf(a);
@@ -177,8 +233,8 @@ export function AppsView() {
                 <div className="pb-2">
                   <div
                     className={cn(
-                      "overflow-hidden rounded-[18px] shadow-[inset_0_0_0_1px_var(--line)] transition-colors duration-250",
-                      isOpen ? "bg-panel" : "bg-surface",
+                      "overflow-hidden rounded-[20px] ring-1 ring-[var(--st-edge)] ring-inset transition-[background-color,box-shadow] duration-300",
+                      isOpen ? "bg-glass-hi shadow-[var(--st-shadow)]" : "bg-glass hover:bg-glass-hi",
                     )}
                   >
                     <button
@@ -187,9 +243,12 @@ export function AppsView() {
                         play("tap");
                         setOpen(isOpen ? null : a.id);
                       }}
-                      className="flex w-full cursor-pointer items-center gap-3.5 px-[18px] py-3.5 text-left"
+                      aria-expanded={isOpen}
+                      className="group flex w-full cursor-pointer items-center gap-3.5 px-[18px] py-3.5 text-left"
                     >
-                      <AppIcon app={a} />
+                      <span className="transition-transform duration-500 ease-spring group-hover:scale-110 group-hover:-rotate-6">
+                        <AppIcon app={a} />
+                      </span>
                       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                         <span className="truncate text-base font-semibold">{a.name}</span>
                         <span
@@ -201,10 +260,10 @@ export function AppsView() {
                           {subtitle(a)}
                         </span>
                       </div>
-                      <span className="text-base font-semibold">{fmtGB(total)}</span>
+                      <span className="text-base font-semibold text-gain tabular-nums">{fmtGB(total)}</span>
                       <span
                         className={cn(
-                          "inline-block text-lg text-mut3 transition-transform duration-250",
+                          "inline-block text-lg text-mut3 transition-transform duration-500 ease-spring",
                           isOpen && "rotate-90",
                         )}
                       >
@@ -212,12 +271,12 @@ export function AppsView() {
                       </span>
                     </button>
                     {isOpen && (
-                      <div className="flex animate-[sift-in_.3s_ease_both] flex-col gap-3 pr-[18px] pb-4 pl-[74px]">
+                      <div className="flex animate-rise flex-col gap-3 pr-[18px] pb-4 pl-[74px]">
                         <div className="flex h-2.5 gap-0.5 overflow-hidden rounded-[5px]">
                           {a.parts.map((p) => (
                             <div
                               key={p.kind}
-                              className="bg-teal opacity-90"
+                              className="origin-left animate-[sift-grow_.7s_var(--spring)_both] bg-teal opacity-90"
                               style={{ width: `${((p.sizeBytes / total) * 100).toFixed(1)}%` }}
                             />
                           ))}
@@ -235,7 +294,7 @@ export function AppsView() {
                             type="button"
                             disabled={busy}
                             onClick={() => uninstall(a)}
-                            className="cursor-pointer rounded-full bg-ink px-[18px] py-2.5 text-sm font-semibold text-surface transition-transform active:scale-[.97]"
+                            className="cursor-pointer rounded-full bg-ink px-[18px] py-2.5 text-sm font-semibold text-surface transition-transform duration-400 ease-spring hover:scale-[1.03] active:scale-95"
                           >
                             {remove.isPending && remove.variables?.id === a.id ? (
                               <Busy>Uninstalling…</Busy>
@@ -248,7 +307,7 @@ export function AppsView() {
                               type="button"
                               disabled={busy}
                               onClick={() => clearCaches(a)}
-                              className="cursor-pointer rounded-full bg-surface px-[18px] py-2.5 text-sm font-semibold shadow-[inset_0_0_0_1px_var(--line2)] active:scale-[.97]"
+                              className="cursor-pointer rounded-full bg-glass-hi px-[18px] py-2.5 text-sm font-semibold shadow-[inset_0_0_0_1px_var(--line2)] transition-transform duration-400 ease-spring hover:scale-[1.03] active:scale-95"
                             >
                               {free.isPending && free.variables?.label === `${a.name} caches` ? (
                                 <Busy>Clearing…</Busy>
@@ -258,6 +317,11 @@ export function AppsView() {
                             </button>
                           )}
                         </div>
+                        <span className="text-[13px] text-mut">
+                          {caches
+                            ? "Uninstalling keeps everything in Restore for 30 days. Caches are cleared for good; apps rebuild them."
+                            : "Uninstalling keeps everything in Restore for 30 days."}
+                        </span>
                       </div>
                     )}
                   </div>
@@ -267,6 +331,56 @@ export function AppsView() {
           );
         })}
       </div>
+    </div>
+  );
+}
+
+/** Glass summary card above the list; tappable ones filter it. */
+function SummaryTile({
+  title,
+  value,
+  sub,
+  hue,
+  gain,
+  on,
+  onClick,
+}: {
+  title: string;
+  value: string;
+  sub: string;
+  hue: string;
+  gain?: boolean;
+  on?: boolean;
+  onClick?: () => void;
+}) {
+  const body = (
+    <>
+      <span className="text-sm font-semibold text-dim">{title}</span>
+      <span className={cn("mt-2 text-[26px] leading-tight font-extrabold tracking-[-0.01em] tabular-nums", gain && "text-gain")}>
+        {value}
+      </span>
+      <span className="text-[13px] text-dim">{sub}</span>
+    </>
+  );
+  const cls = cn(
+    "flex flex-col rounded-[22px] bg-glass p-[18px] text-left ring-1 ring-[var(--st-edge)] ring-inset",
+    on && onClick === undefined && "bg-glass-hi",
+    on && "ring-2 ring-[var(--st-ink)]",
+  );
+  const style = { backgroundImage: `linear-gradient(165deg, color-mix(in srgb, ${hue} var(--st-tint), transparent), transparent 85%)` };
+  return onClick ? (
+    <button
+      type="button"
+      aria-pressed={on}
+      onClick={onClick}
+      className={cn(cls, "cursor-pointer transition-transform duration-500 ease-spring hover:-translate-y-1 active:scale-[.97]")}
+      style={style}
+    >
+      {body}
+    </button>
+  ) : (
+    <div className={cls} style={style}>
+      {body}
     </div>
   );
 }

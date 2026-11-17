@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 const tones = {
   safe: "bg-mint text-tealtx",
   review: "bg-sand text-sandtx",
-  neutral: "bg-surface text-mut2",
+  neutral: "bg-glass-hi text-mut2",
 };
 
 export function Pill({ tone, children }: { tone: keyof typeof tones; children: ReactNode }) {

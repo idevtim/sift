@@ -221,3 +221,40 @@ export interface DriveBreakdown {
   photos: number;
   videos: number;
 }
+
+// ── AI agents ────────────────────────────────────────────────────────
+
+/** What AI coding tools leave on disk, grouped by tool (`agent_report`). */
+export interface AgentReport {
+  tools: AgentTool[];
+}
+
+export interface AgentTool {
+  /** Stable key ("claude-code", "cursor", …). */
+  id: string;
+  name: string;
+  /** The app is open: its caches can't be cleared until it quits. */
+  open: boolean;
+  items: AgentItem[];
+}
+
+export type AgentItemKind = "worktree" | "cache" | "oldVersion" | "history" | "workspace" | "model";
+
+export interface AgentItem {
+  /** Key for `clean_agents`; the backend looks every id up again. */
+  id: string;
+  kind: AgentItemKind;
+  name: string;
+  detail: string;
+  path: string;
+  sizeBytes: number;
+  lastUsedMs: number | null;
+  /** Kept in Restore for 30 days; false = deleted for good (caches). */
+  held: boolean;
+  defaultOn: boolean;
+  /** False for things Sift only lists (local models). */
+  removable: boolean;
+  note: string | null;
+  /** Can't be cleared right now (its app is open, or a program is using it). */
+  blocked: string | null;
+}

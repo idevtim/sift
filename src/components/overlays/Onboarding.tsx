@@ -29,7 +29,9 @@ const LOOKS: { value: ThemePref; label: string }[] = [
   { value: "system", label: "Match system" },
 ];
 
-const enter = "animate-[sift-in_.5s_cubic-bezier(.2,.8,.2,1)_both]";
+const enter = "animate-rise";
+/** Frosted card on the stage. */
+const glass = "bg-glass ring-1 ring-[var(--st-edge)] ring-inset shadow-[var(--st-shadow)]";
 
 /**
  * First-launch onboarding: welcome → how it works → Full Disk Access (macOS)
@@ -126,22 +128,33 @@ export function Onboarding() {
   else primary = ["Continue", () => go(idx + 1)];
 
   return (
-    <div className="absolute inset-0 z-[35] flex animate-[sift-fade_.3s_ease_both] flex-col bg-surface text-ink">
-      <div ref={dragRef} className="flex items-center justify-between px-7 py-5">
+    <div className="stage absolute inset-0 z-[35] flex animate-[sift-fade_.3s_ease_both] flex-col overflow-hidden text-ink">
+      {/* Soft glows drifting behind every step. */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div
+          className="absolute -top-40 -right-32 size-[520px] rounded-full opacity-60 blur-3xl"
+          style={{ background: "radial-gradient(circle, #5fd3b8, transparent 65%)", animation: "sift-float 12s ease-in-out infinite" }}
+        />
+        <div
+          className="absolute -bottom-48 -left-40 size-[560px] rounded-full opacity-40 blur-3xl"
+          style={{ background: "radial-gradient(circle, #7cb4ff, transparent 65%)", animation: "sift-float 15s ease-in-out -4s infinite" }}
+        />
+      </div>
+      <div ref={dragRef} className="relative flex items-center justify-between px-7 py-5">
         <div className="w-[52px]" />
         <div className={cn("flex items-center gap-1.5", perm && "opacity-0")}>
           {steps.map((s, i) => (
             <div
               key={s}
-              className="h-2 rounded transition-[width,background-color] duration-350 ease-spring"
-              style={{ width: i === idx ? 28 : 8, background: i <= idx ? "#1F8A76" : "var(--line2)" }}
+              className="h-2 rounded transition-[width,background-color] duration-600 ease-spring"
+              style={{ width: i === idx ? 32 : 8, background: i <= idx ? "#1F8A76" : "var(--line2)" }}
             />
           ))}
         </div>
         <div className="w-[52px]" />
       </div>
 
-      <div className="flex min-h-0 flex-1 items-center justify-center px-[72px]">
+      <div className="relative flex min-h-0 flex-1 items-center justify-center px-[72px]">
         {step === "welcome" && <Welcome device={device} />}
         {step === "how" && <HowItWorks />}
         {step === "access" && <Access access={access} device={device} />}
@@ -149,13 +162,13 @@ export function Onboarding() {
         {step === "ready" && <Ready device={device} limited={granted === false} />}
       </div>
 
-      <div className="flex items-center justify-between px-10 pt-5 pb-8">
+      <div className="relative flex items-center justify-between px-10 pt-5 pb-8">
         <div className="min-w-20">
           {!perm && idx > 0 && (
             <button
               type="button"
               onClick={() => go(idx - 1)}
-              className="cursor-pointer px-1 py-3 text-[15px] font-semibold text-mut transition-colors hover:text-ink"
+              className="cursor-pointer rounded-full px-3 py-3 text-[15px] font-semibold text-mut transition-[color,background-color,transform] duration-400 ease-spring hover:bg-glass-hi hover:text-ink active:scale-95"
             >
               ‹ Back
             </button>
@@ -166,15 +179,16 @@ export function Onboarding() {
             <button
               type="button"
               onClick={secondary[1]}
-              className="cursor-pointer rounded-full px-[22px] py-[15px] text-base font-semibold text-mut2 transition-colors hover:bg-panel"
+              className="cursor-pointer rounded-full px-[22px] py-[15px] text-base font-semibold text-mut2 transition-[background-color,transform] duration-400 ease-spring hover:bg-glass-hi active:scale-95"
             >
               {secondary[0]}
             </button>
           )}
           <button
+            key={primary[0]}
             type="button"
             onClick={primary[1]}
-            className="min-w-[120px] cursor-pointer rounded-full bg-teal px-7 py-[15px] text-center text-base font-semibold text-white transition-[background-color,transform] duration-200 hover:bg-teal-hover active:scale-[.97]"
+            className="min-w-[120px] animate-rise cursor-pointer rounded-full bg-teal px-7 py-[15px] text-center text-base font-semibold text-white shadow-[0_14px_30px_-12px_rgba(31,138,118,.7)] transition-[background-color,transform] duration-500 ease-spring hover:scale-[1.04] hover:bg-teal-hover active:scale-95"
           >
             {primary[0]}
           </button>
@@ -182,7 +196,7 @@ export function Onboarding() {
       </div>
 
       {relaunching && (
-        <div className="absolute inset-0 z-10 flex animate-[sift-fade_.25s_ease_both] flex-col items-center justify-center gap-[22px] bg-surface">
+        <div className="stage absolute inset-0 z-10 flex animate-[sift-fade_.25s_ease_both] flex-col items-center justify-center gap-[22px]">
           <AppMark size={90} drop />
           <span className="text-xl font-semibold text-mut">Reopening Sift…</span>
         </div>
@@ -191,10 +205,16 @@ export function Onboarding() {
   );
 }
 
+/** The app icon, popping in and then floating gently. */
 function Icon({ size }: { size: number }) {
   return (
-    <div className="rounded-[27%] shadow-[0_22px_44px_-22px_rgba(23,112,95,.6)]">
-      <AppMark size={size} drop />
+    <div className="animate-check" style={{ animationDuration: ".8s" }}>
+      <div
+        className="rounded-[27%] shadow-[0_26px_50px_-20px_rgba(23,112,95,.65)]"
+        style={{ animation: "sift-float 6s ease-in-out .8s infinite" }}
+      >
+        <AppMark size={size} drop />
+      </div>
     </div>
   );
 }
@@ -209,9 +229,9 @@ function Welcome({ device }: { device: string }) {
           Find out what's filling up your {device} and get space back, without worrying about deleting the wrong thing.
         </p>
       </div>
-      <div className="flex flex-wrap justify-center gap-2.5">
+      <div className="stagger flex flex-wrap justify-center gap-2.5">
         {PROMISES.map((p) => (
-          <div key={p} className="flex items-center gap-2 rounded-full bg-panel px-3.5 py-[9px] text-sm font-semibold">
+          <div key={p} className={cn("flex items-center gap-2 rounded-full px-3.5 py-[9px] text-sm font-semibold", glass)}>
             <div className="flex size-[18px] items-center justify-center rounded-full bg-teal text-[11px] text-white">✓</div>
             {p}
           </div>
@@ -223,10 +243,17 @@ function Welcome({ device }: { device: string }) {
 
 function HowCard({ n, title, body, delay, children }: { n: number; title: string; body: string; delay: string; children: ReactNode }) {
   return (
-    <div className={cn("flex flex-col gap-4 rounded-[22px] bg-panel p-6", enter)} style={{ animationDelay: delay }}>
-      <div className="h-[84px] rounded-[14px] bg-surface px-[18px]">{children}</div>
+    <div
+      className={cn(
+        "flex flex-col gap-4 rounded-[24px] p-6 transition-transform duration-500 ease-spring hover:-translate-y-1.5",
+        glass,
+        enter,
+      )}
+      style={{ animationDelay: delay }}
+    >
+      <div className="h-[84px] rounded-2xl bg-glass-hi px-[18px] ring-1 ring-[var(--st-edge)] ring-inset">{children}</div>
       <div className="flex flex-col gap-1.5">
-        <span className="text-[13px] font-bold text-teal">{n}</span>
+        <span className="flex size-6 items-center justify-center rounded-full bg-teal text-[13px] font-bold text-white">{n}</span>
         <span className="text-[19px] font-bold">{title}</span>
         <span className="text-[15px] leading-normal text-mut">{body}</span>
       </div>
@@ -315,7 +342,7 @@ function Access({ access, device }: { access: "none" | "pending" | "granted"; de
         {access === "none" && (
           <div className="flex flex-wrap gap-2">
             {["Open System Settings", "Turn on Sift", "Choose Quit & Reopen"].map((t, i) => (
-              <div key={t} className="flex items-center gap-2 rounded-xl px-3 py-2 text-[13px] font-semibold shadow-[inset_0_0_0_1px_var(--line2)]">
+              <div key={t} className="flex items-center gap-2 rounded-xl bg-glass-hi px-3 py-2 text-[13px] font-semibold ring-1 ring-[var(--st-edge)] ring-inset">
                 <span className="text-teal">{i + 1}</span>
                 {t}
               </div>
@@ -323,41 +350,43 @@ function Access({ access, device }: { access: "none" | "pending" | "granted"; de
           </div>
         )}
         {granted && (
-          <div className="flex animate-[sift-pop_.4s_cubic-bezier(.2,.9,.3,1.3)_both] items-center gap-2.5 rounded-2xl bg-mint px-[18px] py-3.5 text-base font-bold text-tealtx">
+          <div className="flex animate-rise items-center gap-2.5 rounded-2xl bg-mint px-[18px] py-3.5 text-base font-bold text-tealtx">
             <div className="flex size-[22px] items-center justify-center rounded-full bg-teal text-xs text-white">✓</div>
             Full access is on. Thanks!
           </div>
         )}
         {access === "pending" && (
-          <div className="animate-[sift-pop_.4s_ease_both] rounded-2xl bg-sand px-[18px] py-3.5 text-[15px] font-semibold text-sandtx">
+          <div className="animate-rise rounded-2xl bg-sand px-[18px] py-3.5 text-[15px] font-semibold text-sandtx">
             Almost there. Sift needs to reopen before the change takes effect.
           </div>
         )}
       </div>
 
-      <div className="flex flex-col gap-[18px] rounded-3xl bg-panel p-[26px]">
+      <div className={cn("flex flex-col gap-[18px] rounded-[28px] p-[26px] [animation-delay:.1s]", glass, enter)}>
         <div className="flex items-baseline justify-between">
           <span className="text-base font-bold">What Sift can see</span>
           <span className={cn("text-[32px] font-extrabold tracking-[-0.03em] tabular-nums", granted ? "text-teal" : "text-ink")}>
             {granted ? "100%" : "71%"}
           </span>
         </div>
-        <div className="h-3 overflow-hidden rounded-md bg-line">
+        <div className="h-3 overflow-hidden rounded-md bg-row">
           <div
-            className="h-full rounded-md bg-teal transition-[width] duration-1000 ease-out-soft"
+            className="h-full rounded-md bg-teal transition-[width] duration-1000 ease-spring"
             style={{ width: granted ? "100%" : "71%" }}
           />
         </div>
-        <div className="flex flex-col gap-1.5">
+        <div className="stagger flex flex-col gap-1.5">
           {HIDDEN.map(([name, glyph]) => (
             <div
               key={name}
-              className="flex items-center gap-3 rounded-[14px] bg-surface px-3.5 py-[11px] transition-opacity duration-400"
+              className="flex items-center gap-3 rounded-[14px] bg-glass-hi px-3.5 py-[11px] transition-opacity duration-400"
               style={{ opacity: granted ? 1 : 0.75 }}
             >
               <div
+                key={granted ? "on" : "off"}
                 className={cn(
                   "flex size-7 flex-none items-center justify-center rounded-[9px] text-[13px] font-bold transition-colors duration-400",
+                  granted && "animate-check",
                   granted ? "bg-teal text-white" : "bg-line text-mut",
                 )}
               >
@@ -380,8 +409,8 @@ function PrefRow({ label, desc, onClick, children }: { label: string; desc: stri
       type={onClick ? "button" : undefined}
       onClick={onClick}
       className={cn(
-        "flex items-center justify-between gap-4 rounded-[18px] bg-panel px-5 py-4 text-left",
-        onClick && "cursor-pointer transition-colors hover:bg-hover",
+        "flex items-center justify-between gap-4 rounded-[20px] bg-glass px-5 py-4 text-left ring-1 ring-[var(--st-edge)] ring-inset",
+        onClick && "cursor-pointer transition-[background-color,transform] duration-400 ease-spring hover:bg-glass-hi active:scale-[.99]",
       )}
     >
       <div className="flex flex-col gap-[3px]">
@@ -405,9 +434,9 @@ function Prefs() {
         <h1 className="text-[44px] font-extrabold tracking-[-0.03em]">Make it yours</h1>
         <p className="text-lg text-mut">You can change any of these later.</p>
       </div>
-      <div className="flex flex-col gap-2">
+      <div className="stagger flex flex-col gap-2">
         <PrefRow label="Appearance" desc="Light, dark, or follow your system.">
-          <div className="flex flex-none gap-0.5 rounded-xl bg-line p-[3px]">
+          <div className="flex flex-none gap-0.5 rounded-xl bg-row p-[3px]">
             {LOOKS.map((l) => (
               <button
                 key={l.value}
@@ -417,8 +446,8 @@ function Prefs() {
                   setTheme(l.value);
                 }}
                 className={cn(
-                  "cursor-pointer rounded-[9px] px-3.5 py-2 text-sm transition-colors duration-200",
-                  theme === l.value ? "bg-surface font-semibold shadow-[0_1px_3px_rgba(34,38,43,.12)]" : "font-medium",
+                  "cursor-pointer rounded-[9px] px-3.5 py-2 text-sm transition-[background-color,transform] duration-400 ease-spring active:scale-95",
+                  theme === l.value ? "bg-glass-hi font-semibold shadow-[0_1px_3px_rgba(34,38,43,.12)]" : "font-medium",
                 )}
               >
                 {l.label}

@@ -24,6 +24,94 @@ interface SidebarProps {
   onNavigate: (id: RouteId) => void;
 }
 
+/** Each page's tile: a line glyph on its own colour, like the Home tiles. */
+const NAV: Partial<Record<RouteId, { hue: [string, string]; glyph: ReactNode }>> = {
+  home: {
+    hue: ["#5fd3b8", "#1f8a76"],
+    glyph: (
+      <>
+        <path d="M3 11l9-7 9 7" />
+        <path d="M5 10v10h14V10" />
+      </>
+    ),
+  },
+  drives: {
+    hue: ["#9fb4c6", "#4f6b80"],
+    glyph: (
+      <>
+        <rect x="3" y="13" width="18" height="7" rx="2" />
+        <path d="M5 13l2-8h10l2 8" />
+        <path d="M17 16.5h.01" />
+      </>
+    ),
+  },
+  "big-files": {
+    hue: ["#d3b5ff", "#7a4fd6"],
+    glyph: (
+      <>
+        <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
+        <path d="M14 3v6h6" />
+      </>
+    ),
+  },
+  restore: {
+    hue: ["#ffd99a", "#d39a45"],
+    glyph: (
+      <>
+        <path d="M3 12a9 9 0 1 0 3-6.7" />
+        <path d="M3 4v5h5" />
+      </>
+    ),
+  },
+  explore: {
+    hue: ["#8fd0ff", "#2d7fd6"],
+    glyph: (
+      <>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M15.5 8.5l-2 5-5 2 2-5z" />
+      </>
+    ),
+  },
+  duplicates: {
+    hue: ["#9aa8ff", "#4b55c9"],
+    glyph: (
+      <>
+        <rect x="3" y="7" width="14" height="13" rx="2" />
+        <path d="M7 4h12a2 2 0 0 1 2 2v11" />
+      </>
+    ),
+  },
+  apps: {
+    hue: ["#ffb98a", "#e0743a"],
+    glyph: (
+      <>
+        <rect x="4" y="4" width="6.5" height="6.5" rx="1.6" />
+        <rect x="13.5" y="4" width="6.5" height="6.5" rx="1.6" />
+        <rect x="4" y="13.5" width="6.5" height="6.5" rx="1.6" />
+        <rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.6" />
+      </>
+    ),
+  },
+  agents: {
+    hue: ["#f3a6d8", "#a24bd1"],
+    glyph: (
+      <>
+        <path d="M12 3l1.8 4.6L18.5 9l-4.7 1.6L12 15l-1.8-4.4L5.5 9l4.7-1.4z" />
+        <path d="M18 15l.8 2 2 .8-2 .7-.8 2.1-.8-2.1-2-.7 2-.8z" />
+      </>
+    ),
+  },
+  developer: {
+    hue: ["#c3ccd6", "#5b6672"],
+    glyph: (
+      <>
+        <path d="M8 8l-4 4 4 4" />
+        <path d="M16 8l4 4-4 4" />
+      </>
+    ),
+  },
+};
+
 export function Sidebar({ current, onNavigate }: SidebarProps) {
   const platform = usePlatform();
   const dragRef = useRef<HTMLDivElement>(null);
@@ -37,6 +125,12 @@ export function Sidebar({ current, onNavigate }: SidebarProps) {
   const { data: dupes } = useQuery({ ...queries.duplicates, enabled: scanned });
   const { data: dev } = useQuery({ ...queries.dev, enabled: scanned });
   const { data: apps } = useQuery({ ...queries.apps, enabled: false });
+  // Like Apps, the AI agents badge waits until that page has been opened.
+  const { data: agents } = useQuery({ ...queries.agents, enabled: false });
+  const agentBytes = (agents?.tools ?? [])
+    .flatMap((t) => t.items)
+    .filter((i) => i.removable && i.defaultOn && !i.blocked)
+    .reduce((s, i) => s + i.sizeBytes, 0);
   const dupeBytes = (dupes ?? []).reduce((s, g) => s + g.sizeBytes * (g.copies.length - 1), 0);
   const devBytes = dev ? defaultCleanable(dev) : 0;
   const { theme, setTheme, soundOn, toggleSound, powerToolsOpen, togglePowerTools } = usePrefs();
@@ -53,18 +147,34 @@ export function Sidebar({ current, onNavigate }: SidebarProps) {
     duplicates: dupeBytes > 0 ? fmtGB(dupeBytes) : "",
     apps: apps?.supported && apps.apps.length ? String(apps.apps.length) : "",
     developer: devBytes > 0 ? fmtGB(devBytes) : "",
+    agents: agentBytes > 0 ? fmtGB(agentBytes) : "",
   };
+  // Amounts you can free read in the reclaim colour; counts stay neutral.
+  const gainBadge: Partial<Record<RouteId, boolean>> = { home: true, duplicates: true, developer: true, agents: true };
 
   const go = (id: RouteId) => {
     play("tap");
     onNavigate(id);
   };
 
+  const item = (id: RouteId, label: string) => (
+    <NavItem
+      key={id}
+      id={id}
+      active={active === id}
+      badge={badges[id]}
+      gain={gainBadge[id]}
+      onClick={() => go(id)}
+    >
+      {label}
+    </NavItem>
+  );
+
   return (
-    <aside className="flex w-[220px] flex-none flex-col gap-[18px] bg-panel px-3.5 pt-5 pb-5 transition-colors duration-400">
+    <aside className="flex w-[220px] flex-none flex-col gap-4 px-3 pt-5 pb-4">
       {/* macOS draws native traffic lights here (overlay title bar); on
           Windows/Linux the native title bar sits above, so no inset. */}
-      {platform === "macos" && <div ref={dragRef} className="-mx-3.5 -mt-5 h-8 flex-none" />}
+      {platform === "macos" && <div ref={dragRef} className="-mx-3 -mt-5 h-8 flex-none" />}
 
       <div className="flex items-center gap-2.5 px-2">
         <AppMark size={32} />
@@ -74,42 +184,50 @@ export function Sidebar({ current, onNavigate }: SidebarProps) {
       <button
         type="button"
         onClick={() => usePalette.getState().setOpen(true)}
-        className="flex cursor-pointer items-center justify-between rounded-xl bg-surface px-3 py-[9px] text-sm text-mut shadow-[inset_0_0_0_1px_var(--line)] transition-shadow hover:shadow-[inset_0_0_0_1px_var(--line2)]"
+        className="st-glass st-mut flex cursor-pointer items-center justify-between rounded-[14px] py-2 pr-2 pl-3 text-sm transition-transform duration-400 ease-spring-bounce hover:-translate-y-px active:scale-[.97]"
       >
-        <span>⌕&nbsp;&nbsp;Search</span>
-        <kbd className="rounded-md px-1.5 py-0.5 font-sans text-xs font-semibold shadow-[inset_0_0_0_1px_var(--line2)]">
+        <span className="flex items-center gap-2">
+          <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <circle cx="11" cy="11" r="7" />
+            <path d="M20 20l-3.5-3.5" />
+          </svg>
+          Search
+        </span>
+        <kbd className="rounded-md bg-[var(--st-row)] px-1.5 py-0.5 font-sans text-xs font-semibold">
           {platform === "macos" ? "⌘K" : "Ctrl K"}
         </kbd>
       </button>
 
-      <nav className="flex flex-col gap-1 text-[15px] font-medium">
-        {routesIn("everyday").map((r) => (
-          <NavItem key={r.id} active={active === r.id} badge={badges[r.id]} onClick={() => go(r.id)}>
-            {r.label}
-          </NavItem>
-        ))}
+      <nav aria-label="Main" className="flex flex-col gap-0.5 text-[15px] font-medium">
+        {routesIn("everyday").map((r) => item(r.id, r.label))}
       </nav>
 
-      <div className="-mt-2 flex flex-col gap-1 text-[15px] font-medium">
+      <div className="-mt-1 flex flex-col gap-0.5 text-[15px] font-medium">
         <button
           type="button"
+          aria-expanded={powerToolsOpen}
           onClick={() => {
             play("tap");
             togglePowerTools();
           }}
-          className="flex cursor-pointer items-center justify-between px-3 py-1.5 text-xs font-bold tracking-[0.08em] text-mut3 hover:text-ink"
+          className="st-mut flex cursor-pointer items-center justify-between rounded-lg px-3 py-1.5 text-xs font-bold tracking-[0.08em] hover:text-[var(--st-ink)]"
         >
           <span>POWER TOOLS</span>
-          <span className={cn("inline-block text-base transition-transform duration-250 ease-spring", powerToolsOpen && "rotate-90")}>
+          <span
+            className={cn(
+              "inline-block text-base transition-transform duration-500 ease-spring-bounce",
+              powerToolsOpen && "rotate-90",
+            )}
+          >
             ›
           </span>
         </button>
         {powerToolsOpen && (
-          <div className="flex animate-sift-in flex-col gap-1">
-            {routesIn("power").map((r) => (
-              <NavItem key={r.id} active={active === r.id} badge={badges[r.id]} onClick={() => go(r.id)}>
-                {r.label}
-              </NavItem>
+          <div className="flex flex-col gap-0.5">
+            {routesIn("power").map((r, i) => (
+              <div key={r.id} className="animate-rise" style={{ animationDelay: `${i * 0.04}s` }}>
+                {item(r.id, r.label)}
+              </div>
             ))}
           </div>
         )}
@@ -118,7 +236,7 @@ export function Sidebar({ current, onNavigate }: SidebarProps) {
       <div className="flex-1" />
 
       {update.version && (
-        <div className="flex animate-sift-in flex-col gap-2 rounded-[14px] bg-surface p-3">
+        <div className="st-glass animate-rise flex flex-col gap-2 rounded-2xl p-3">
           <span className="text-sm font-semibold">Sift {update.version} is ready</span>
           <button
             type="button"
@@ -127,27 +245,29 @@ export function Sidebar({ current, onNavigate }: SidebarProps) {
               play("tap");
               void restartToUpdate();
             }}
-            className="cursor-pointer rounded-full bg-ink px-3 py-1.5 text-[13px] font-semibold text-surface transition-transform duration-200 active:scale-[.97] disabled:cursor-default disabled:opacity-60"
+            className="cursor-pointer rounded-full bg-ink px-3 py-1.5 text-[13px] font-semibold text-surface transition-transform duration-400 ease-spring-bounce active:scale-95 disabled:cursor-default disabled:opacity-60"
           >
             {update.installing ? <Busy>Updating…</Busy> : "Restart to update"}
           </button>
         </div>
       )}
 
-      <div className="flex flex-col gap-2 rounded-[14px] bg-surface p-3">
+      <div className="st-glass flex flex-col gap-2 rounded-2xl p-3">
         {system && (
           <>
             <span className="text-sm font-semibold">{system.name}</span>
-            <div className="h-1.5 overflow-hidden rounded-[3px] bg-line">
+            <div className="h-1.5 overflow-hidden rounded-[3px] bg-[var(--st-row)] shadow-[inset_0_0_0_1px_var(--st-edge)]">
               <div
-                className="h-full rounded-[3px] bg-ink transition-[width] duration-1200"
+                className="h-full rounded-[3px] bg-ink transition-[width] duration-1200 ease-spring-bounce"
                 style={{ width: `${(system.usedBytes / system.capacityBytes) * 100}%` }}
               />
             </div>
           </>
         )}
         <div className="flex items-center justify-between gap-2">
-          <span className="text-[13px] text-mut">{system ? `${fmtBig(system.capacityBytes - system.usedBytes)} free` : ""}</span>
+          <span className="st-mut text-[13px]">
+            {system ? `${fmtBig(system.capacityBytes - system.usedBytes)} free` : ""}
+          </span>
           <button
             type="button"
             disabled={rescanning}
@@ -156,7 +276,7 @@ export function Sidebar({ current, onNavigate }: SidebarProps) {
               play("tap");
               void rescan();
             }}
-            className="flex-none cursor-pointer rounded-full px-2 py-0.5 text-[13px] font-semibold text-mut2 shadow-[inset_0_0_0_1px_var(--line)] transition-[color,box-shadow,transform] duration-150 hover:text-ink hover:shadow-[inset_0_0_0_1px_var(--line2)] active:scale-[.96] disabled:cursor-default disabled:text-mut3 disabled:active:scale-100"
+            className="st-mut flex-none cursor-pointer rounded-full px-2 py-0.5 text-[13px] font-semibold transition-[color,background-color,transform] duration-400 ease-spring-bounce hover:bg-[var(--st-row)] hover:text-[var(--st-ink)] active:scale-95 disabled:cursor-default disabled:opacity-60 disabled:active:scale-100"
           >
             {rescanning ? <Busy>Scanning</Busy> : "↻ Rescan"}
           </button>
@@ -174,7 +294,7 @@ export function Sidebar({ current, onNavigate }: SidebarProps) {
           <span>{dark ? "Light" : "Dark"}</span>
         </PillButton>
         <PillButton
-          className={soundOn ? "text-ink" : "text-mut3"}
+          className={soundOn ? "" : "st-mut"}
           onClick={() => {
             toggleSound();
             play("tap");
@@ -188,18 +308,65 @@ export function Sidebar({ current, onNavigate }: SidebarProps) {
   );
 }
 
-function NavItem({ active, badge, onClick, children }: { active: boolean; badge?: string; onClick: () => void; children: ReactNode }) {
+function NavItem({
+  id,
+  active,
+  badge,
+  gain,
+  onClick,
+  children,
+}: {
+  id: RouteId;
+  active: boolean;
+  badge?: string;
+  gain?: boolean;
+  onClick: () => void;
+  children: ReactNode;
+}) {
+  const nav = NAV[id];
   return (
     <button
       type="button"
       onClick={onClick}
+      aria-current={active ? "page" : undefined}
       className={cn(
-        "flex cursor-pointer items-center justify-between rounded-xl px-3 py-2.5 text-left transition-colors duration-200 hover:bg-surface",
-        active ? "bg-surface text-ink shadow-nav-active" : "text-mut2",
+        "group flex w-full cursor-pointer items-center gap-2.5 rounded-[14px] py-1.5 pr-2.5 pl-1.5 text-left transition-[background-color,box-shadow,transform] duration-300 active:scale-[.97]",
+        active ? "st-glass" : "hover:bg-[var(--st-row)]",
       )}
+      style={active ? { backgroundColor: "var(--st-glass-hi)" } : undefined}
     >
-      <span>{children}</span>
-      {badge && <span className="text-xs font-semibold text-mut">{badge}</span>}
+      {nav && (
+        <span
+          // Re-keyed when it becomes active, so the pop replays.
+          key={active ? "on" : "off"}
+          aria-hidden="true"
+          className={cn(
+            "flex size-[30px] flex-none items-center justify-center rounded-[9px] text-white transition-transform duration-500 ease-spring-bounce group-hover:scale-110",
+            active && "animate-nav-pop",
+          )}
+          style={{
+            background: `linear-gradient(140deg, ${nav.hue[0]}, ${nav.hue[1]})`,
+            boxShadow: "inset 0 1px 0 rgba(255,255,255,.45), 0 3px 8px -2px rgba(0,0,0,.25)",
+          }}
+        >
+          <svg
+            width="17"
+            height="17"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            {nav.glyph}
+          </svg>
+        </span>
+      )}
+      <span className={cn("flex-1 truncate", active ? "font-semibold" : "st-mut")}>{children}</span>
+      {badge && (
+        <span className={cn("text-xs font-semibold tabular-nums", gain ? "st-gain" : "st-mut")}>{badge}</span>
+      )}
     </button>
   );
 }
@@ -209,7 +376,7 @@ function PillButton({ className, ...props }: React.ButtonHTMLAttributes<HTMLButt
     <button
       type="button"
       className={cn(
-        "flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-surface px-1.5 py-[9px] text-[13px] font-semibold shadow-[inset_0_0_0_1px_var(--line)] transition-transform duration-150 active:scale-[.96]",
+        "st-glass flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-xl px-1.5 py-[9px] text-[13px] font-semibold transition-transform duration-400 ease-spring-bounce hover:-translate-y-px active:scale-95",
         className,
       )}
       {...props}

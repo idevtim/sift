@@ -10,11 +10,11 @@
 
 A free, open-source disk-space cleaner for macOS, Windows and Linux. Sift answers one question, *how much can I safely free up?*, explains what it finds in plain words, and lets you act in one click.
 
-Nothing is deleted on the spot. Whatever Sift removes waits in **Restore** for 30 days, so you can always change your mind.
+Almost everything Sift removes waits in **Restore** for 30 days, so you can change your mind. The few things that can't come back — emptying the Trash, and caches that apps rebuild on their own — are labelled as deleted for good, and Sift asks before it clears them.
 
 **[Download the latest release](https://github.com/idevtim/sift/releases/latest)** · [All releases](https://github.com/idevtim/sift/releases) · [What's new](release-notes/)
 
-> **New in 1.2.0:** a **Rescan** button to catch up with changes you make outside Sift, and uninstalling no longer asks you to quit an app that isn't open. [Release notes](release-notes/v1.2.0.md)
+> **New in 2.0.0:** a redesign with glass, gradients and springy motion, a one-click **Sweep** on Home, and a new **AI agents** page that finds leftover worktrees, old versions and caches from tools like Claude, Cursor and Codex. [Release notes](release-notes/v2.0.0.md)
 
 ## Screenshots
 
@@ -55,7 +55,7 @@ Nothing is deleted on the spot. Whatever Sift removes waits in **Restore** for 3
 
 ## Features
 
-- **One clear number**: Home tells you how much you can free up today
+- **One clear number**: Home tells you how much you can free up today, and **Sweep** frees it right there, ticking off each item as it goes
 - **Six everyday categories**: old installers, the Trash (Recycle Bin on Windows), leftovers from apps you've uninstalled, temporary files, duplicate photos, and large videos you haven't opened in a year
 - **Review before anything happens**: safe categories start switched on, anything worth a second look starts off, and **See all** lists every file behind a category
 - **Restore for 30 days**: put anything back with one click, or **Clear now** to free the space early
@@ -64,8 +64,9 @@ Nothing is deleted on the spot. Whatever Sift removes waits in **Restore** for 3
 - **Power tools** for a closer look:
   - **Explore**: a treemap of your disk you can click into
   - **Duplicates**: exact copies side by side; keep the oldest, newest, or best-placed copy, or pick one yourself
-  - **Apps**: uninstall an app along with the settings and caches it leaves behind. On a Mac, background helpers like updaters are stopped for you, and only the app itself counts as open
+  - **Apps**: uninstall an app along with the settings and caches it leaves behind, or see just the ones you haven't opened in six months. On a Mac, background helpers like updaters are stopped for you, and only the app itself counts as open
   - **Developer**: Docker images, iOS simulators, Xcode DerivedData, Rust `target/` and `node_modules` from projects you haven't touched lately
+  - **AI agents**: leftover worktrees, old versions, caches, old conversations and editor state for deleted folders from Claude, Cursor, VS Code, Windsurf and Codex. Worktrees with uncommitted work start switched off, and local models (Ollama) are listed but never removed
 - **Weekly check-up**: one notification on Sundays if there's space worth freeing. It never removes anything on its own
 - **Rescan** any time from under your drive in the sidebar (or ⌘K / Ctrl+K), to pick up changes made in Finder, Explorer or other apps
 - **Quick search** with ⌘K / Ctrl+K across files, pages and actions

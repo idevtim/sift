@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { DriveMark } from "@/components/ui/DriveMark";
+import { DriveRing } from "@/components/ui/DriveRing";
 import { deviceName, usePlatform } from "@/hooks/usePlatform";
 import { useScan } from "@/hooks/useScan";
 import { fmtGB } from "@/lib/format";
@@ -8,6 +8,7 @@ import type { RouteId } from "@/routes";
 import { usePrefs } from "@/stores/prefsStore";
 import { useScanStore } from "@/stores/scanStore";
 import type { Category } from "@/types/api";
+import { cn } from "@/lib/utils";
 
 /** The overlay never finishes faster than this, even on a small home folder. */
 const MIN_DURATION_MS = 3800;
@@ -88,27 +89,24 @@ export function FirstScan({ onNavigate }: { onNavigate: (id: RouteId) => void })
 
   return (
     <div
-      className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-7 bg-surface transition-opacity duration-450"
+      className="stage absolute inset-0 z-30 flex flex-col items-center justify-center gap-7 transition-opacity duration-450"
       style={{ opacity: fading ? 0 : 1 }}
     >
-      <div className="relative" style={{ zoom: 1.5 }}>
-        <div className="relative overflow-hidden rounded-3xl bg-panel shadow-[0_0_0_1px_var(--line)]">
-          <DriveMark pulse className="bg-panel" />
-          {!reduceMotion && (
-            <div className="absolute inset-x-0 top-3 h-0.5 animate-[sift-scan_1.6s_ease-in-out_infinite] bg-teal-2 shadow-[0_0_12px_2px_rgba(127,205,187,.7)]" />
-          )}
-        </div>
-      </div>
+      <DriveRing
+        size={200}
+        mode="progress"
+        progress={pct}
+        working={!done && !reduceMotion}
+        done={done}
+        className="animate-rise"
+      />
       <div className="flex flex-col items-center gap-2">
-        <span className="text-[32px] font-bold tracking-[-0.02em]">
+        <span key={done ? "done" : "looking"} className="animate-rise text-[34px] font-extrabold tracking-[-0.02em]">
           {done ? `All set. Here's your ${deviceName(platform)}.` : "Taking a look around…"}
         </span>
         <span className="h-[18px] max-w-[520px] truncate font-mono text-[13px] text-mut">
           {done ? "Scan complete" : progress?.currentPath.replace(/^(\/Users\/[^/]+|\/home\/[^/]+)/, "~")}
         </span>
-      </div>
-      <div className="h-2 w-[440px] overflow-hidden rounded bg-line">
-        <div className="h-full rounded bg-teal" style={{ width: `${(pct * 100).toFixed(1)}%` }} />
       </div>
       <div className="grid w-[580px] grid-cols-3 gap-2.5">
         {chips.map(([name, bytes], k) => {
@@ -117,16 +115,20 @@ export function FirstScan({ onNavigate }: { onNavigate: (id: RouteId) => void })
           return (
             <div
               key={name}
-              className="flex justify-between gap-2 rounded-[14px] px-3.5 py-3 transition-[opacity,transform] duration-450 ease-[cubic-bezier(.2,.9,.3,1.3)]"
+              className={cn(
+                "flex justify-between gap-2 rounded-2xl px-3.5 py-3 transition-[opacity,transform] duration-700 ease-spring",
+                last
+                  ? "text-white shadow-[0_12px_28px_-12px_rgba(31,138,118,.7)]"
+                  : "bg-glass text-ink ring-1 ring-[var(--st-edge)] ring-inset",
+              )}
               style={{
                 opacity: on ? 1 : 0,
-                transform: on ? "none" : "translateY(8px) scale(.96)",
-                background: last ? "#1F8A76" : "var(--panel)",
-                color: last ? "#FFFFFF" : "var(--ink)",
+                transform: on ? "none" : "translateY(14px) scale(.92)",
+                background: last ? "linear-gradient(150deg, #2fb59a, #167a67)" : undefined,
               }}
             >
               <span className="text-sm font-semibold">{name}</span>
-              <span className="text-sm">{bytes === undefined || !finished ? "…" : fmtGB(bytes)}</span>
+              <span className="text-sm tabular-nums">{bytes === undefined || !finished ? "…" : fmtGB(bytes)}</span>
             </div>
           );
         })}

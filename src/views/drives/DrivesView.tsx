@@ -30,7 +30,7 @@ export function DrivesView() {
           ? "Just this computer right now. Plug in a drive and it will appear here."
           : `${drives.length} drives connected. Tap one to see what's on it.`}
       </PageHeader>
-      <div className="grid grid-cols-2 gap-3.5">
+      <div className="stagger grid grid-cols-2 gap-3.5">
         {drives.map((d) => {
           const usedPct = (d.usedBytes / d.capacityBytes) * 100;
           const tealPct = d.kind === "internal" ? (freeable / d.capacityBytes) * 100 : 0;
@@ -42,17 +42,20 @@ export function DrivesView() {
                 play("tap");
                 navigateTo("drive", { id: d.id });
               }}
-              className="flex animate-[sift-in_.4s_ease_both] cursor-pointer items-center gap-5 rounded-[22px] bg-panel p-[22px] text-left transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_24px_-12px_rgba(34,38,43,.35)]"
+              className="flex cursor-pointer items-center gap-5 rounded-[22px] bg-glass ring-1 ring-inset ring-[var(--st-edge)] p-[22px] text-left transition-[transform,box-shadow] duration-500 ease-spring hover:-translate-y-1 hover:shadow-[0_10px_24px_-12px_rgba(34,38,43,.35)]"
             >
               <div
-                className="flex size-[88px] flex-none items-center justify-center rounded-full"
-                style={{
-                  background: `conic-gradient(#1F8A76 0 ${tealPct.toFixed(2)}%, var(--ink) 0 ${usedPct.toFixed(2)}%, var(--line3) 0)`,
-                }}
+                className="relative flex size-[88px] flex-none items-center justify-center"
               >
-                <div className="flex size-[66px] items-center justify-center rounded-full bg-panel text-[17px] font-bold">
-                  {Math.round(usedPct)}%
-                </div>
+                {/* A true ring (masked), so the glass card shows through the middle. */}
+                <div
+                  className="absolute inset-0 animate-sift-sweep rounded-full"
+                  style={{
+                    background: `conic-gradient(#1F8A76 0 calc(var(--sw) * ${tealPct.toFixed(2)}%), var(--ink) 0 calc(var(--sw) * ${usedPct.toFixed(2)}%), var(--line3) 0)`,
+                    mask: "radial-gradient(farthest-side, transparent calc(100% - 11px), #000 calc(100% - 10px))",
+                  }}
+                />
+                <span className="relative text-[17px] font-bold">{Math.round(usedPct)}%</span>
               </div>
               <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                 <div className="flex flex-wrap items-center gap-2">

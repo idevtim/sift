@@ -15,6 +15,7 @@ import { usePrefs } from "@/stores/prefsStore";
 import { useScanStore } from "@/stores/scanStore";
 import { AppsView } from "@/views/apps/AppsView";
 import { BigFilesView } from "@/views/big-files/BigFilesView";
+import { AgentsView } from "@/views/agents/AgentsView";
 import { DeveloperView } from "@/views/developer/DeveloperView";
 import { DoneView } from "@/views/done/DoneView";
 import { DriveDetailView } from "@/views/drives/DriveDetailView";
@@ -130,6 +131,8 @@ function View({ route, onNavigate }: { route: RouteId; onNavigate: (id: RouteId)
       return <AppsView />;
     case "developer":
       return <DeveloperView />;
+    case "agents":
+      return <AgentsView />;
     default:
       return <PlaceholderView route={route} />;
   }

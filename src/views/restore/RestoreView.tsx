@@ -62,7 +62,7 @@ export function RestoreView() {
     <div className="absolute inset-0 flex animate-sift-in flex-col gap-6 overflow-auto px-[52px] py-11">
       <div className="flex items-end justify-between gap-6">
         <div className="flex flex-col gap-2">
-          <h2 className="text-4xl font-bold tracking-[-0.02em]">Restore</h2>
+          <h2 className="text-4xl font-extrabold tracking-[-0.02em]">Restore</h2>
           <span className="text-base text-mut">
             Most things Sift removes are kept here for 30 days, then cleared automatically.
           </span>
@@ -81,7 +81,7 @@ export function RestoreView() {
       </div>
 
       {!isLoading && held.length === 0 && (
-        <div className="max-w-[520px] rounded-[20px] bg-panel p-7 text-base leading-[1.45] text-mut2">
+        <div className="max-w-[520px] rounded-[20px] bg-glass ring-1 ring-inset ring-[var(--st-edge)] p-7 text-base leading-[1.45] text-mut2">
           {cleared.length
             ? "Nothing to bring back right now. Things you remove will wait here for 30 days."
             : "Nothing here yet. Things you free up will show here so you can bring them back."}
@@ -94,11 +94,11 @@ export function RestoreView() {
         </div>
       )}
 
-      <div className="flex flex-col gap-2">
+      <div className="stagger flex flex-col gap-2">
         {held.map((e) => {
           const restoring = restore.isPending && restore.variables === e.id;
           return (
-            <div key={e.id} className="flex animate-[sift-in_.4s_ease_both] items-center gap-4 rounded-[18px] bg-panel px-[18px] py-4">
+            <div key={e.id} className="flex items-center gap-4 rounded-[18px] bg-glass ring-1 ring-inset ring-[var(--st-edge)] px-[18px] py-4">
               <div className="flex flex-1 flex-col gap-[3px]">
                 <span className="text-base font-semibold">{entryName(e)}</span>
                 <span className="text-sm text-mut">
@@ -147,7 +147,7 @@ export function RestoreView() {
                 play("tap");
                 hide.mutate();
               }}
-              className="cursor-pointer rounded-full px-3 py-1.5 text-sm font-semibold text-mut2 hover:bg-panel"
+              className="cursor-pointer rounded-full px-3 py-1.5 text-sm font-semibold text-mut2 hover:bg-glass-hi"
             >
               {hide.isPending ? <Busy>Hiding…</Busy> : "Hide these"}
             </button>
@@ -193,7 +193,7 @@ function ClearButton({ armed, disabled, working, onClick, onBlur, label, armedLa
         "flex-none cursor-pointer rounded-full px-4 py-[9px] text-sm font-semibold whitespace-nowrap transition-[background-color,color,transform] duration-200 active:scale-[.97] disabled:cursor-default",
         armed
           ? "bg-teal text-white hover:bg-teal-hover"
-          : "bg-surface shadow-[inset_0_0_0_1px_var(--line2)] hover:bg-mint",
+          : "bg-glass-hi shadow-[inset_0_0_0_1px_var(--line2)] hover:bg-mint",
       )}
     >
       {working ? <Busy>Clearing…</Busy> : armed ? armedLabel : label}

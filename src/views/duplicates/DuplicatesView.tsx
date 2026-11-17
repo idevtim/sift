@@ -34,7 +34,8 @@ import {
 } from "./dupes";
 import { Preview } from "./Preview";
 
-const outline = "rounded-full shadow-[inset_0_0_0_1px_var(--line2)] font-semibold cursor-pointer";
+const outline =
+  "rounded-full bg-glass-hi ring-1 ring-[var(--st-edge)] ring-inset shadow-[inset_0_0_0_1px_var(--line2)] font-semibold cursor-pointer transition-transform duration-400 ease-spring hover:scale-[1.03] active:scale-95";
 
 export function DuplicatesView() {
   const { data: groups = [], isLoading } = useQuery(queries.duplicates);
@@ -130,16 +131,16 @@ export function DuplicatesView() {
 
   return (
     <div className="absolute inset-0 flex animate-sift-in flex-col">
-      <div className="flex items-end justify-between gap-5 px-8 pt-6 pb-3.5">
+      <div className="flex items-end justify-between gap-5 px-8 pt-6 pb-4">
         <div className="flex min-w-0 flex-col gap-1.5">
-          <h2 className="text-[32px] font-bold tracking-[-0.02em]">Duplicates</h2>
+          <h2 className="text-4xl font-extrabold tracking-[-0.02em]">Duplicates</h2>
           <div className="text-[15px] text-mut">
             {isLoading ? (
               <Loading>Comparing files to find exact copies…</Loading>
             ) : groups.length ? (
               <>
                 {plural(groups.length, "set", "sets")} of identical files ·{" "}
-                <span className="font-semibold text-ink">{fmtSizeFine(allBytes)}</span> in extra copies
+                <span className="font-semibold text-gain">{fmtSizeFine(allBytes)}</span> in extra copies
               </>
             ) : (
               "No exact copies in your Desktop, Documents, Downloads, Pictures, Movies or Music."
@@ -163,8 +164,8 @@ export function DuplicatesView() {
       </div>
 
       {done !== null ? (
-        <div className="flex flex-1 animate-sift-in flex-col items-center justify-center gap-4 border-t border-line p-10 text-center">
-          <div className="flex size-16 animate-[sift-pop_.45s_cubic-bezier(.2,.9,.3,1.3)_both] items-center justify-center rounded-full bg-teal text-[28px] font-bold text-white">
+        <div className="mx-6 mb-6 flex flex-1 animate-rise flex-col items-center justify-center gap-4 rounded-[26px] bg-glass p-10 text-center ring-1 ring-[var(--st-edge)] ring-inset">
+          <div className="animate-check flex size-16 items-center justify-center rounded-full bg-teal text-[28px] font-bold text-white shadow-[0_14px_30px_-10px_rgba(31,138,118,.6)]">
             ✓
           </div>
           <span className="text-[34px] font-extrabold tracking-[-0.03em]">You got {fmtSizeFine(done)} back</span>
@@ -198,9 +199,9 @@ export function DuplicatesView() {
       ) : (
         groups.length > 0 && (
           <>
-            <div className="flex min-h-0 flex-1 border-t border-line">
-              <div className="box-border flex min-h-0 w-[340px] flex-none flex-col gap-2.5 border-r border-line px-4 py-3.5">
-                <label className="flex h-10 flex-none items-center gap-2.5 rounded-xl bg-panel px-3 shadow-[inset_0_0_0_1px_var(--line)]">
+            <div className="flex min-h-0 flex-1 gap-3.5 px-6">
+              <div className="box-border flex min-h-0 w-[340px] flex-none animate-rise flex-col gap-2.5 rounded-[24px] bg-glass px-4 py-3.5 ring-1 ring-[var(--st-edge)] ring-inset">
+                <label className="flex h-10 flex-none items-center gap-2.5 rounded-xl bg-glass-hi px-3 ring-1 ring-[var(--st-edge)] ring-inset">
                   <span className="text-base text-mut">⌕</span>
                   <input
                     value={query}
@@ -233,8 +234,8 @@ export function DuplicatesView() {
                           browse(() => setType(t.value));
                         }}
                         className={cn(
-                          "flex cursor-pointer gap-[5px] rounded-full px-2.5 py-[5px] text-[13px] font-semibold whitespace-nowrap transition-colors duration-200",
-                          on ? "bg-ink text-surface" : "text-mut2 shadow-[inset_0_0_0_1px_var(--line2)]",
+                          "flex cursor-pointer gap-[5px] rounded-full px-2.5 py-[5px] text-[13px] font-semibold whitespace-nowrap transition-[background-color,color,transform] duration-400 ease-spring active:scale-95",
+                          on ? "bg-ink text-surface" : "text-mut2 shadow-[inset_0_0_0_1px_var(--line2)] hover:bg-glass-hi",
                         )}
                       >
                         <span>{t.label}</span>
@@ -259,7 +260,7 @@ export function DuplicatesView() {
                   </button>
                 </div>
 
-                <div className="flex min-h-0 flex-1 flex-col gap-[3px] overflow-auto">
+                <div key={`${at}-${type}-${sort}`} className="stagger flex min-h-0 flex-1 flex-col gap-[3px] overflow-auto">
                   {rows.map((g) => {
                     const skip = !!skipped[g.hash];
                     return (
@@ -271,8 +272,8 @@ export function DuplicatesView() {
                           setSelected(g.hash);
                         }}
                         className={cn(
-                          "flex flex-none animate-[sift-in_.3s_ease_both] cursor-pointer items-center gap-3 rounded-[14px] px-2.5 py-[7px] text-left transition-colors duration-150",
-                          g === sel ? "bg-panel" : "hover:bg-hover",
+                          "flex flex-none cursor-pointer items-center gap-3 rounded-[14px] px-2.5 py-[7px] text-left transition-[background-color,transform] duration-300 active:scale-[.98]",
+                          g === sel ? "bg-glass-hi shadow-[var(--st-shadow)] ring-1 ring-[var(--st-edge)] ring-inset" : "hover:bg-glass-hi",
                         )}
                       >
                         <div className="relative flex-none">
@@ -287,7 +288,7 @@ export function DuplicatesView() {
                             {skip ? "Keeping all copies" : `${g.copies.length} copies · ${fmtSizeFine(g.sizeBytes)} each`}
                           </span>
                         </div>
-                        <span className={cn("text-[13px] font-semibold whitespace-nowrap tabular-nums", skip && "text-mut3")}>
+                        <span className={cn("text-[13px] font-semibold whitespace-nowrap tabular-nums", skip ? "text-mut3" : "text-gain")}>
                           {skip ? "—" : fmtSizeFine(extraBytes(g))}
                         </span>
                       </button>
@@ -335,7 +336,7 @@ export function DuplicatesView() {
                           onClick={() => p !== at && goPage(p)}
                           className={cn(
                             "box-border flex h-7 min-w-7 cursor-pointer items-center justify-center rounded-lg px-1.5 text-[13px] font-semibold tabular-nums transition-colors duration-150",
-                            p === at ? "bg-ink text-surface" : "text-mut2 hover:bg-hover",
+                            p === at ? "bg-ink text-surface" : "text-mut2 hover:bg-glass-hi",
                           )}
                         >
                           {p + 1}
@@ -349,7 +350,7 @@ export function DuplicatesView() {
                 </div>
               </div>
 
-              <div className="box-border min-w-0 flex-1 overflow-auto px-[26px] pt-5 pb-[22px]">
+              <div className="box-border min-w-0 flex-1 animate-rise overflow-auto rounded-[24px] bg-glass px-[26px] pt-5 pb-[22px] ring-1 ring-[var(--st-edge)] ring-inset [animation-delay:.08s]">
                 {sel && (
                   <SetDetail
                     key={sel.hash}
@@ -372,12 +373,12 @@ export function DuplicatesView() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between gap-5 border-t border-line px-8 py-3.5">
+            <div className="mx-6 mt-3.5 mb-5 flex animate-rise items-center justify-between gap-5 rounded-[24px] bg-glass-hi py-3.5 pr-4 pl-7 shadow-[inset_0_0_0_1px_var(--st-edge),var(--st-shadow)] backdrop-blur-xl [animation-delay:.16s]">
               <div className="flex flex-col gap-0.5">
                 <span className="text-[13px] text-mut">
                   Removing {plural(extras, "extra copy", "extra copies")} from {plural(included.length, "set", "sets")}
                 </span>
-                <span className="text-2xl font-bold tracking-[-0.02em] tabular-nums">{fmtSizeFine(total)}</span>
+                <span className="text-2xl font-extrabold tracking-[-0.02em] text-gain tabular-nums">{fmtSizeFine(total)}</span>
               </div>
               <div className="flex items-center gap-3.5">
                 <span className="text-[13px] text-mut">Extras wait in Restore for 30 days.</span>
@@ -410,7 +411,7 @@ function PageArrow({
       aria-label={label}
       disabled={disabled}
       onClick={onClick}
-      className="flex size-7 cursor-pointer items-center justify-center rounded-lg text-[17px] text-mut2 hover:bg-hover disabled:cursor-default disabled:opacity-30 disabled:hover:bg-transparent"
+      className="flex size-7 cursor-pointer items-center justify-center rounded-lg text-[17px] text-mut2 hover:bg-glass-hi disabled:cursor-default disabled:opacity-30 disabled:hover:bg-transparent"
     >
       {children}
     </button>
@@ -457,7 +458,7 @@ function SetDetail({
             type="button"
             onClick={onToggleSkip}
             disabled={busy}
-            className={cn(outline, "px-3.5 py-[9px] text-[13px] whitespace-nowrap hover:bg-hover disabled:cursor-default disabled:opacity-50")}
+            className={cn(outline, "px-3.5 py-[9px] text-[13px] whitespace-nowrap hover:bg-glass-hi disabled:cursor-default disabled:opacity-50")}
           >
             {skip ? "Remove extras instead" : "Keep all copies"}
           </button>
@@ -480,7 +481,7 @@ function SetDetail({
         </div>
         <div className="flex flex-wrap gap-1.5">
           {factsFor(g, facts).map(([label, value]) => (
-            <span key={label} className="flex items-center gap-1.5 rounded-[10px] bg-surface px-2.5 py-1.5 text-[13px]">
+            <span key={label} className="flex items-center gap-1.5 rounded-[10px] bg-glass-hi px-2.5 py-1.5 text-[13px]">
               <span className="font-bold text-teal">✓</span>
               <span className="text-mut">{label}</span>
               <span className="font-semibold">{value}</span>
@@ -501,8 +502,8 @@ function SetDetail({
               title={c.path}
               onClick={() => !kept && onKeep(c.path)}
               className={cn(
-                "relative flex flex-col overflow-hidden rounded-2xl bg-panel text-left transition-[box-shadow,transform] duration-[250ms] hover:-translate-y-0.5",
-                kept ? "cursor-default shadow-[inset_0_0_0_2px_#1F8A76]" : "cursor-pointer shadow-[inset_0_0_0_1px_var(--line)]",
+                "relative flex flex-col overflow-hidden rounded-2xl bg-glass ring-1 ring-inset ring-[var(--st-edge)] text-left transition-[box-shadow,transform] duration-500 ease-spring hover:-translate-y-1",
+                kept ? "cursor-default ring-2 ring-teal" : "cursor-pointer active:scale-[.97]",
               )}
             >
               <Preview
@@ -523,8 +524,9 @@ function SetDetail({
                 )}
               </Preview>
               <span
+                key={kept ? "keep" : "remove"}
                 className={cn(
-                  "absolute top-2.5 left-2.5 rounded-full px-2.5 py-1 text-xs font-bold text-white shadow-[0_2px_8px_rgba(0,0,0,.18)] transition-colors duration-[250ms]",
+                  "animate-check absolute top-2.5 left-2.5 rounded-full px-2.5 py-1 text-xs font-bold text-white shadow-[0_2px_8px_rgba(0,0,0,.18)] transition-colors duration-[250ms]",
                   kept ? "bg-teal" : "bg-[rgba(20,22,25,.7)]",
                 )}
               >

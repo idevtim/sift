@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 const tones = {
   safe: "bg-mint text-tealtx",
   review: "bg-sand text-sandtx",
-  neutral: "bg-panel text-mut2",
+  neutral: "bg-glass text-mut2",
 };
 
 /** 44px rounded tile holding a line icon, tinted by safety. */

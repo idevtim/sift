@@ -100,7 +100,7 @@ export function FindingView({ onNavigate }: { onNavigate: (id: RouteId) => void 
         <div className="flex items-center gap-4">
           <IconTile icon={copy.icon} tone={finding?.safety === "review" ? "review" : "safe"} />
           <div className="flex flex-col gap-1">
-            <h2 className="text-4xl font-bold tracking-[-0.02em]">{copy.name}</h2>
+            <h2 className="text-4xl font-extrabold tracking-[-0.02em]">{copy.name}</h2>
             <span className="text-base text-mut">
               {isLoading ? (
                 <Loading className="text-base">Looking…</Loading>
@@ -113,14 +113,14 @@ export function FindingView({ onNavigate }: { onNavigate: (id: RouteId) => void 
       </div>
 
       {!isLoading && shown.length === 0 && (
-        <div className="max-w-[560px] rounded-[20px] bg-panel p-7 text-base leading-[1.45] text-mut2">
+        <div className="max-w-[560px] rounded-[20px] bg-glass ring-1 ring-inset ring-[var(--st-edge)] p-7 text-base leading-[1.45] text-mut2">
           {kind === "trash" && platform === "windows"
             ? "Sift can't list the Recycle Bin item by item. Open it from the desktop to look through it."
             : "Nothing left here."}
         </div>
       )}
 
-      <div className="flex flex-col">
+      <div className="stagger flex flex-col">
         {visible.map((item) => (
           // Grid rows fold the height to 0 once removed; spacing lives inside.
           <div
@@ -132,7 +132,7 @@ export function FindingView({ onNavigate }: { onNavigate: (id: RouteId) => void 
           >
             <div className="min-h-0 overflow-hidden">
               <div className="pb-2">
-                <div className="flex items-center gap-4 rounded-[18px] bg-panel px-[18px] py-3.5">
+                <div className="flex items-center gap-4 rounded-[18px] bg-glass ring-1 ring-inset ring-[var(--st-edge)] px-[18px] py-3.5">
                   <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                     <span className="truncate text-base font-semibold">{item.name}</span>
                     <span className="truncate text-[13px] text-mut">{item.location}</span>
@@ -144,7 +144,7 @@ export function FindingView({ onNavigate }: { onNavigate: (id: RouteId) => void 
                       play("tap");
                       void api.revealPath(item.path);
                     }}
-                    className="flex-none cursor-pointer rounded-full px-3.5 py-[9px] text-sm font-semibold text-mut2 transition-colors hover:bg-surface"
+                    className="flex-none cursor-pointer rounded-full px-3.5 py-[9px] text-sm font-semibold text-mut2 transition-colors hover:bg-glass-hi"
                   >
                     Show in {fileManagerName(platform)}
                   </button>
@@ -152,7 +152,7 @@ export function FindingView({ onNavigate }: { onNavigate: (id: RouteId) => void 
                     type="button"
                     disabled={working.has(item.path) || leaving.has(item.path)}
                     onClick={() => removeItem(item)}
-                    className="flex-none cursor-pointer rounded-full bg-surface px-4 py-[9px] text-sm font-semibold shadow-[inset_0_0_0_1px_var(--line2)] transition-colors duration-200 hover:bg-mint active:scale-[.97] disabled:cursor-default disabled:hover:bg-surface"
+                    className="flex-none cursor-pointer rounded-full bg-glass-hi px-4 py-[9px] text-sm font-semibold shadow-[inset_0_0_0_1px_var(--line2)] transition-colors duration-200 hover:bg-mint active:scale-[.97] disabled:cursor-default disabled:hover:bg-glass-hi"
                   >
                     {working.has(item.path) ? (
                       <Busy>{item.held ? "Removing…" : "Deleting…"}</Busy>
@@ -171,7 +171,7 @@ export function FindingView({ onNavigate }: { onNavigate: (id: RouteId) => void 
           <button
             type="button"
             onClick={() => setAll(true)}
-            className="cursor-pointer self-start rounded-full px-4 py-2.5 text-sm font-semibold text-mut2 hover:bg-panel"
+            className="cursor-pointer self-start rounded-full px-4 py-2.5 text-sm font-semibold text-mut2 hover:bg-glass-hi"
           >
             Show {(shown.length - FIRST_PAGE).toLocaleString()} more
           </button>

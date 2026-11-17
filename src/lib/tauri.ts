@@ -1,6 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import type {
+  AgentReport,
   AppInfo,
   AppList,
   BigFile,
@@ -22,6 +23,7 @@ import type {
 } from "@/types/api";
 import * as demo from "./demoFixtures";
 import * as demoIdx from "./demoIndex";
+import { demoAgents } from "./demoAgents";
 
 const isTauri = () =>
   typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
@@ -93,6 +95,24 @@ export const api = {
   duplicatePreview: (hash: string) => call<string | null>("duplicate_preview", () => null, { hash }),
   duplicateFacts: (hash: string) =>
     call<FileFacts>("duplicate_facts", slow(() => demoIdx.duplicateFacts(hash), 150), { hash }),
+  /** What AI coding tools leave on disk (worktrees, caches, old versions…). */
+  agentReport: () => call<AgentReport>("agent_report", slow(demoAgents.report, 600)),
+  /** Clean AI-agent items by id: caches go for good, the rest to Restore. */
+  cleanAgents: (ids: string[]) =>
+    call<FreeUpReport>(
+      "clean_agents",
+      () =>
+        new Promise<FreeUpReport>((resolve, reject) =>
+          setTimeout(() => {
+            try {
+              resolve(demoAgents.clean(ids));
+            } catch (e) {
+              reject(e);
+            }
+          }, 500),
+        ),
+      { ids },
+    ),
   listApps: () => call<AppList>("list_apps", slow(demoIdx.demoIndex.apps)),
   /** An app's icon as a data URL (null when there isn't one; letter tile instead). */
   appIcon: (path: string) => call<string | null>("app_icon", () => null, { path }),

@@ -35,17 +35,18 @@ export function ReviewView({ onNavigate }: { onNavigate: (id: RouteId) => void }
           >
             ‹ Home
           </button>
-          <h2 className="text-4xl font-bold tracking-[-0.02em]">Here's what Sift found</h2>
+          <h2 className="text-4xl font-extrabold tracking-[-0.02em]">Here's what Sift found</h2>
         </div>
         <span className="text-[15px] text-mut">Tap any item to include or skip it.</span>
       </div>
 
-      <div className="flex flex-1 flex-col gap-2 overflow-auto px-[52px]">
-        {findings.map((f) => {
+      <div className="flex flex-1 flex-col gap-2 overflow-auto px-9 pb-2">
+        {findings.map((f, i) => {
           const copy = findingCopy[f.kind];
           return (
             <ReviewRow
               key={f.id}
+              index={i}
               icon={copy.icon}
               safe={f.safety === "safe"}
               name={copy.name}
@@ -63,9 +64,10 @@ export function ReviewView({ onNavigate }: { onNavigate: (id: RouteId) => void }
             />
           );
         })}
-        {picks.map((p) => (
+        {picks.map((p, i) => (
           <ReviewRow
             key={p.path}
+            index={findings.length + i}
             icon={p.reason === "installer" ? "installer" : p.reason === "trash" ? "trash" : "temp"}
             safe
             name={p.name}
@@ -77,10 +79,10 @@ export function ReviewView({ onNavigate }: { onNavigate: (id: RouteId) => void }
         ))}
       </div>
 
-      <div className="flex items-center justify-between border-t border-line px-[52px] py-5">
+      <div className="mx-9 mt-3 mb-6 flex animate-rise items-center justify-between rounded-[24px] bg-glass-hi py-4 pr-4 pl-7 shadow-[inset_0_0_0_1px_var(--st-edge),var(--st-shadow)] backdrop-blur-xl [animation-delay:.25s]">
         <div className="flex flex-col gap-0.5">
           <span className="text-sm text-mut">You'll free up</span>
-          <span className="text-[28px] font-bold tracking-[-0.02em]">{fmtGB(selectedBytes)}</span>
+          <span className="text-[28px] font-extrabold tracking-[-0.02em] text-gain tabular-nums">{fmtGB(selectedBytes)}</span>
         </div>
         <div className="flex items-center gap-3.5">
           <span className="text-sm text-mut">You can restore most things for 30 days.</span>
@@ -94,6 +96,7 @@ export function ReviewView({ onNavigate }: { onNavigate: (id: RouteId) => void }
 }
 
 interface ReviewRowProps {
+  index: number;
   icon: IconName;
   safe: boolean;
   name: string;
@@ -105,13 +108,14 @@ interface ReviewRowProps {
 }
 
 /** The whole row toggles (a stretched switch underneath); "See all" sits above it. */
-function ReviewRow({ icon, safe, name, why, sizeBytes, on, onToggle, look }: ReviewRowProps) {
+function ReviewRow({ index, icon, safe, name, why, sizeBytes, on, onToggle, look }: ReviewRowProps) {
   return (
     <div
       className={cn(
-        "relative flex items-center gap-4 rounded-[18px] px-[18px] py-[13px] transition-colors duration-250 hover:bg-hover",
-        on ? "bg-panel" : "bg-surface",
+        "relative flex animate-rise items-center gap-4 rounded-[20px] px-[18px] py-[13px] transition-[background-color,box-shadow] duration-300 hover:bg-glass-hi",
+        on ? "bg-glass-hi shadow-[inset_0_0_0_1px_var(--st-edge)]" : "bg-glass/40",
       )}
+      style={{ animationDelay: `${0.05 + index * 0.05}s` }}
     >
       <button
         type="button"

@@ -7,6 +7,7 @@ import { useRescan } from "@/hooks/useRescan";
 import { resolveTheme } from "@/hooks/useTheme";
 import { fmtGB, tildify } from "@/lib/format";
 import { isFreeable } from "@/lib/reasonCopy";
+import { cn } from "@/lib/utils";
 import { play } from "@/lib/sound";
 import { api } from "@/lib/tauri";
 import { routesIn, type RouteId } from "@/routes";
@@ -148,9 +149,9 @@ export function CommandPalette({ onNavigate }: { onNavigate: (id: RouteId) => vo
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-[580px] animate-[sift-pop_.28s_cubic-bezier(.2,.9,.3,1.2)_both] overflow-hidden rounded-[20px] bg-surface shadow-[0_30px_80px_-20px_rgba(0,0,0,.5),0_0_0_1px_var(--line3)]"
+        className="w-[580px] animate-[sift-pop_.6s_var(--spring)_both] overflow-hidden rounded-[24px] bg-[color-mix(in_srgb,var(--surface)_86%,transparent)] shadow-[0_30px_80px_-20px_rgba(0,0,0,.5),inset_0_0_0_1px_var(--st-edge)] backdrop-blur-2xl backdrop-saturate-150"
       >
-        <div className="flex items-center gap-3 border-b border-line px-5 py-4">
+        <div className="flex items-center gap-3 border-b border-[var(--st-edge)] px-5 py-4">
           <span className="text-xl text-mut">⌕</span>
           <input
             ref={inputRef}
@@ -179,7 +180,7 @@ export function CommandPalette({ onNavigate }: { onNavigate: (id: RouteId) => vo
             className="flex-1 border-none bg-transparent font-sans text-lg text-ink outline-none select-text placeholder:text-mut3"
           />
           {isFetching && <Spinner size={14} className="text-mut" />}
-          <kbd className="rounded-md px-[7px] py-[3px] font-sans text-xs font-semibold text-mut shadow-[inset_0_0_0_1px_var(--line2)]">esc</kbd>
+          <kbd className="rounded-md bg-row px-[7px] py-[3px] font-sans text-xs font-semibold text-mut">esc</kbd>
         </div>
         <div className="max-h-[400px] overflow-auto p-2">
           {list.map((r, k) => (
@@ -191,10 +192,18 @@ export function CommandPalette({ onNavigate }: { onNavigate: (id: RouteId) => vo
                 type="button"
                 onClick={() => runAt(k)}
                 onMouseEnter={() => k !== cur && setIdx(k)}
-                className="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-[9px] text-left transition-colors duration-100"
-                style={{ background: k === cur ? "var(--panel)" : "transparent" }}
+                className={cn(
+                  "group flex cursor-pointer items-center gap-3 rounded-[14px] px-3 py-[9px] text-left transition-[background-color,box-shadow] duration-150",
+                  k === cur && "bg-row shadow-[inset_0_0_0_1px_var(--st-edge)]",
+                )}
               >
-                <div className="flex size-8 flex-none items-center justify-center rounded-[10px] text-sm font-bold" style={{ background: r.tint }}>
+                <div
+                  className={cn(
+                    "flex size-8 flex-none items-center justify-center rounded-[10px] text-sm font-bold transition-transform duration-500 ease-spring",
+                    k === cur && "scale-110",
+                  )}
+                  style={{ background: r.tint }}
+                >
                   {r.glyph}
                 </div>
                 <div className="flex min-w-0 flex-1 flex-col gap-px">
@@ -207,7 +216,7 @@ export function CommandPalette({ onNavigate }: { onNavigate: (id: RouteId) => vo
           ))}
           {!list.length && !isFetching && q === query.trim() && <div className="p-6 text-center text-sm text-mut">No matches for "{query}"</div>}
         </div>
-        <div className="flex gap-4 border-t border-line px-5 py-2.5 text-xs text-mut">
+        <div className="flex gap-4 border-t border-[var(--st-edge)] px-5 py-2.5 text-xs text-mut">
           <span>↑↓ to move</span>
           <span>↵ to open</span>
           <span>{mod} to close</span>

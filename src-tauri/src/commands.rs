@@ -1,4 +1,5 @@
 use crate::models::{
+    AgentReport,
     AppList, BigFile, DevArtifact, Drive, DriveBreakdown, DriveKind, DuplicateGroup, ExploreView, FileFacts,
     Finding, FindingItem, FindingKind, FreeProgress, FreeUpReport, RestoreEntry, ScanProgress, ScanSummary, SearchHit,
 };
@@ -606,6 +607,62 @@ pub async fn drive_breakdown(
 pub async fn reveal_path(app: AppHandle, path: String) -> Result<(), String> {
     use tauri_plugin_opener::OpenerExt;
     app.opener().reveal_item_in_dir(path).map_err(|e| e.to_string())
+}
+
+// ── AI agents ────────────────────────────────────────────────────────
+
+/// What AI coding tools leave on disk (`scanners::agents`).
+#[tauri::command]
+pub async fn agent_report() -> Result<AgentReport, String> {
+    blocking(|| Ok(scanners::background(scanners::agents::report))).await
+}
+
+/// Clean the chosen AI-agent items, looked up again by id (never paths from
+/// the UI). Held items go to Restore as one entry; caches are deleted for
+/// good. Items that are blocked right now (their app is open, a program is
+/// working in the worktree) or only listed (models) are refused.
+#[tauri::command]
+pub async fn clean_agents(
+    store: State<'_, Arc<RestoreStore>>,
+    index: State<'_, SharedIndex>,
+    ids: Vec<String>,
+) -> Result<FreeUpReport, String> {
+    let store = Arc::clone(&store);
+    let index = Arc::clone(&index);
+    blocking(move || {
+        let found = scanners::background(scanners::agents::scan);
+        let chosen: Vec<_> = found.into_iter().filter(|f| ids.contains(&f.item.id)).collect();
+        if chosen.is_empty() {
+            return Err("Those items are already gone".into());
+        }
+        if let Some(f) = chosen.iter().find(|f| !f.item.removable) {
+            return Err(format!("Sift doesn't remove {}", f.item.name));
+        }
+        if let Some(why) = chosen.iter().find_map(|f| f.item.blocked.clone()) {
+            return Err(format!("{why}, then try again."));
+        }
+        let sized = |f: &scanners::agents::Found| -> Vec<(PathBuf, u64)> {
+            f.paths.iter().map(|p| (p.clone(), scanners::dir_size(p).0)).collect()
+        };
+        let (held, gone): (Vec<_>, Vec<_>) = chosen.iter().partition(|f| f.item.held);
+        let label = "AI agent cleanup".to_string();
+        let mut report = FreeUpReport { freed_bytes: 0, skipped: 0 };
+        for (entry, skipped) in [
+            store.hold(Origin::Label(label.clone()), held.iter().flat_map(|f| sized(f)).collect(), |_| {}),
+            store.delete_permanently(Origin::Label(label), gone.iter().flat_map(|f| sized(f)).collect(), |_| {}),
+        ]
+        .into_iter()
+        .map(|r| r.map_err(|e| e.to_string()))
+        .collect::<Result<Vec<_>, _>>()?
+        {
+            report.freed_bytes += entry.map_or(0, |e| e.size_bytes);
+            report.skipped += skipped;
+        }
+        let paths: Vec<PathBuf> = chosen.iter().flat_map(|f| f.paths.clone()).collect();
+        forget(&index, &paths);
+        Ok(report)
+    })
+    .await
 }
 
 // ── Restore ──────────────────────────────────────────────────────────
